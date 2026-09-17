@@ -80,7 +80,10 @@ async def run(args):
                 await page.wait_for_function('!document.querySelector("[data-film=wss2-teaser] video").paused')
                 await page.locator('[data-film="wss2-teaser"] [data-sound]').click()
                 await expect(page.locator('[data-film="wss2-teaser"] [data-sound]')).to_have_attribute('aria-pressed','true')
-                await teaser.evaluate('(v)=>{v.currentTime=v.duration-.15}')
+                # Exercise natural completion, not server-dependent HTTP seeking.
+                await page.wait_for_function('document.querySelector("[data-film=wss2-teaser] video").readyState>=2')
+                assert await teaser.evaluate('(v)=>!v.loop&&Math.abs(v.duration-13.034)<.2')
+                await page.wait_for_function('document.querySelector("[data-film=wss2-teaser] video").ended',timeout=20000)
                 await expect(page.locator('[data-film="wss2-teaser"] [data-toggle]')).to_have_text('REPLAY FILM')
                 passed(f'{label}: complete teaser, explicit sound, event-driven controls and finite playback')
                 await page.locator('[data-film="wss2-invitation"] [data-toggle]').click()
