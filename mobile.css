@@ -1,5 +1,5 @@
 @media (max-width:699px){
-  :root{--mobile-scan-y:clamp(220px,34dvh,292px);--mobile-scan-band:108px}
+  :root{--mobile-scan-y:clamp(76px,10dvh,96px);--mobile-scan-band:108px}
 
   html,body{
     width:100%;height:auto;min-height:100%;
@@ -34,7 +34,7 @@
   .stage .rule,.stage>.line,.stage>.index{display:none}
 
   .mobile-intro{
-    min-height:72dvh;
+    min-height:clamp(330px,46dvh,410px);
     padding:18px 14px 48px;
     display:flex;
     flex-direction:column;
@@ -53,7 +53,7 @@
   .mobile-project{
     position:relative;
     min-height:58dvh;
-    padding:34px 10px 58px;
+    padding:26px 10px 58px;
     overflow:hidden;
   }
   .mobile-project-index{
@@ -98,6 +98,28 @@
     overflow:hidden;
     will-change:transform;
   }
+  .mobile-intro-magnifier{
+    display:none;
+    position:absolute;
+    left:0;
+    width:100%;
+    padding:18px 14px 48px;
+    z-index:6;
+    background:#fff;
+    flex-direction:column;
+    will-change:top,transform;
+    pointer-events:none;
+  }
+  .scan-world.intro-magnifier{
+    background:#fff!important;
+    color:#000!important;
+  }
+  .scan-world.intro-magnifier .mobile-intro-magnifier{display:flex}
+  .scan-world.intro-magnifier .mobile-scan-decor,
+  .scan-world.intro-magnifier .project-kicker,
+  .scan-world.intro-magnifier .project-title,
+  .scan-world.intro-magnifier .project-statement{display:none!important}
+
   .mobile-scan-decor{
     position:absolute;
     inset:0;
@@ -140,6 +162,7 @@
   .scan-world[data-slug="cuelayer"]{background:#f5f4ee!important}
   .scan-world[data-slug="aidrb"]{background:#f7f7f4!important}
   .scan-world[data-slug="9701"]{background:#faf8f4!important}
+  .scan-world[data-slug="intro"]{background:#fff!important}
 
   .mobile-scan-decor .color-field{position:absolute;z-index:1}
 
