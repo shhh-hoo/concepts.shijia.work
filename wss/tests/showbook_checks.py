@@ -67,6 +67,8 @@ async def run(args):
                     index=await carousel.evaluate('''el=>{const items=[...el.querySelectorAll('.carousel-item')],c=el.scrollLeft+el.clientWidth/2;let best=0;items.forEach((x,i)=>{if(Math.abs(x.offsetLeft+x.offsetWidth/2-c)<Math.abs(items[best].offsetLeft+items[best].offsetWidth/2-c))best=i});el.scrollLeft=items[best].offsetLeft+items[best].offsetWidth/2-el.clientWidth/2;return best}''')
                     await carousel.locator('.arched-card').nth(index).click()
                     await frame.locator('#view-quiz.active').wait_for(timeout=10000)
+                    await frame.locator('#quiz-options button').first.wait_for(state='visible')
+                    await page.wait_for_timeout(1500)  # Original card-to-question animation must settle.
                     await page.screenshot(path=str(out/(label+'-live-question.png')))
                     await frame.locator('#quiz-options button').first.click()
                     await page.wait_for_timeout(700)
@@ -78,6 +80,9 @@ async def run(args):
                 assert await page.evaluate('testFrame===document.querySelector("iframe")&&testWindow===testFrame.contentWindow')
                 assert await page.evaluate('Math.abs(projectScroll.scrollTop-testTop)<2')
                 ok(label+': collapse retains the app session and portfolio reading position')
+                if args.live:
+                    await page.wait_for_timeout(700)
+                    await page.screenshot(path=str(out/(label+'-live-inline.png')))
                 await page.locator('[data-live-expand]').click()
                 await page.keyboard.press('Escape')
                 assert await page.locator('dialog:modal').count()==0

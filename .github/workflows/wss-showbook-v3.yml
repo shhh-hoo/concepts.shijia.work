@@ -29,6 +29,7 @@ jobs:
           for n in $(seq 1 20); do curl -fsS http://127.0.0.1:8765/ > /dev/null && break || sleep 1; done
           python wss/tests/browser_checks.py --root /tmp/wss-showbook-site --base-url http://127.0.0.1:8765/ --output /tmp/showbook-evidence/core
           python wss/tests/showbook_checks.py --root /tmp/wss-showbook-site --base-url http://127.0.0.1:8765/ --live --output /tmp/showbook-evidence/live
+          python wss/tests/portable_checks.py --root /tmp/wss-showbook-site --output /tmp/showbook-evidence/portable
       - name: Preserve exact tested source (not publication media)
         if: always()
         run: |
