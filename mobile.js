@@ -3,8 +3,8 @@
   mobileQuery.addEventListener?.("change",()=>window.location.reload());
   if(!mobileQuery.matches) return;
 
-  const SCAN_RATIO=.56;
-  const BAND=82;
+  const BAND=108;
+  const scanCenterY=()=>Math.min(292,Math.max(220,window.innerHeight*.34));
   let lastScanProject=null;
   let scrollFrame=0;
   let savedScrollY=0;
@@ -130,7 +130,7 @@
       return;
     }
 
-    const scanY=window.innerHeight*SCAN_RATIO;
+    const scanY=scanCenterY();
     const sections=[...stage.querySelectorAll(".mobile-project")];
     let match=null;
 
