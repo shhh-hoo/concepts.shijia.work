@@ -1,0 +1,30 @@
+/* Browser-native navigation extension: history + touch overscroll-to-index. */
+
+/* During an active pull there is deliberately no transition:
+   the project layer tracks the finger 1:1. */
+.return-pulling #stage{
+  visibility:visible !important;
+  z-index:0;
+}
+
+.return-pulling #projectWorld{
+  transform:translate3d(0,var(--return-pull,0px),0);
+  transition:none;
+  will-change:transform;
+}
+
+/* Easing is allowed only after the finger is released. */
+.return-pulling.return-resetting #projectWorld{
+  transition:transform 180ms var(--ease),opacity 160ms ease;
+}
+
+.return-pulling.return-committing #projectWorld{
+  transition:transform 160ms var(--ease),opacity 160ms ease;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .return-pulling.return-resetting #projectWorld,
+  .return-pulling.return-committing #projectWorld{
+    transition-duration:1ms;
+  }
+}
