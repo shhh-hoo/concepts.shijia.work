@@ -5,6 +5,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: 9701-preview-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   preview:
     runs-on: ubuntu-latest
@@ -21,7 +24,6 @@ jobs:
           persist-credentials: false
           path: student
       - name: Package original sources and check scripts
-        shell: bash
         run: |
           mkdir -p preview
           cp -R concepts preview/concepts
@@ -31,9 +33,18 @@ jobs:
           if [ -f concepts/scripts/build-9701-preview.mjs ]; then
             node concepts/scripts/build-9701-preview.mjs student preview/concepts
           fi
+      - name: Install browser verifier
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Capture and test original product
+        run: python concepts/scripts/inspect-9701.py
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: 9701-preview
-          path: preview/
+          path: |
+            preview/
+            evidence/
           retention-days: 7
           if-no-files-found: error
