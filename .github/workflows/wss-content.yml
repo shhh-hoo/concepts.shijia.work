@@ -1,0 +1,27 @@
+name: WSS content checks
+on:
+  push:
+    branches: [feat/wss-editorial-content]
+  pull_request:
+    paths: [wss/**, index.html, .github/workflows/wss-content.yml]
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JavaScript
+        run: |
+          for file in app.js data.js navigation.js mobile.js wss/content.js; do
+            if [ -f "$file" ]; then node --check "$file"; fi
+          done
+      - name: Package site
+        run: |
+          mkdir -p /tmp/wss-site
+          tar --exclude=.git --exclude=.github -cf /tmp/wss-site/site.tar .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wss-content-site
+          path: /tmp/wss-site/site.tar
+          retention-days: 7
