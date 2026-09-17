@@ -1,0 +1,29 @@
+/* Browser-native navigation extension: history + overscroll-to-index. */
+.project-scroll{
+  overscroll-behavior-y:none;
+}
+
+.return-pulling #stage{
+  visibility:visible !important;
+  z-index:0;
+}
+
+.return-pulling #projectWorld{
+  transform:translate3d(0,var(--return-pull,0px),0);
+  will-change:transform;
+}
+
+.return-resetting #projectWorld{
+  transition:transform 240ms var(--ease),opacity 160ms ease;
+}
+
+.return-committing #projectWorld{
+  transition:transform 220ms var(--ease),opacity 160ms ease;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .return-resetting #projectWorld,
+  .return-committing #projectWorld{
+    transition-duration:1ms;
+  }
+}
