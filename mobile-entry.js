@@ -135,6 +135,12 @@
     pointer=null;
   },{passive:true});
 
+  window.addEventListener("mobile-history-return",()=>{
+    suppressAutoUntilGesture=true;
+    pointer=null;
+    clearAuto();
+  });
+
   // Long-press context menus are not useful while the project scan owns the
   // screen and can interfere with tap/scroll gesture recognition.
   viewport.addEventListener("contextmenu",e=>{
