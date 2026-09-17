@@ -1,9 +1,9 @@
 @media (max-width:699px){
-  /* Content-led opening: no viewport-sized spacer between intro and 01. */
+  /* Content-led opening with a moderate intro → 01 interval. */
   .stage{padding-bottom:0!important}
   .mobile-intro{
     min-height:0!important;
-    padding:18px 14px 26px!important;
+    padding:18px 14px 48px!important;
   }
   .mobile-project{
     padding-top:12px!important;
