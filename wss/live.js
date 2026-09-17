@@ -1,7 +1,7 @@
 /* An opt-in original-site embed. No simulation, app rewrite or camera access. */
 (() => {
   'use strict';
-  const URL = 'https://shhh-hoo.github.io/WSS2/wss2.html';
+  const URL = 'https://shhh-hoo.github.io/WSS2/';
   function mount(article, root, onStart) {
     const panel=article.querySelector('.wss-live-panel'), slot=panel.parentElement;
     const frameMount=panel.querySelector('[data-live-frame]'), cover=panel.querySelector('.wss-live-cover');
@@ -17,7 +17,7 @@
       expand.textContent='EXPAND ↗'; expand.setAttribute('aria-expanded','false');
       if (focus) expand.focus({preventScroll:true});
     }
-    function unload(message='Stopped. Activate to return to the original website.', focus=false) {
+    function unload(message='Stopped. Activate to return to the original WSS2 experience.', focus=false) {
       if (frame) { frame.remove(); frame=null; }
       cover.hidden=false; stop.hidden=true; retry.hidden=true;
       panel.classList.remove('is-live'); status.textContent=message;
@@ -27,7 +27,7 @@
       if (frame || !alive) return;
       onStart();
       frame=document.createElement('iframe');
-      frame.title='Original WSS2 — collect cards and answer questions';
+      frame.title='Original WSS2 — visual world and live quiz experience';
       frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-pointer-lock');
       frame.setAttribute('allow',"fullscreen; camera 'none'; microphone 'none'; autoplay 'none'");
       frame.referrerPolicy='strict-origin-when-cross-origin';
@@ -36,7 +36,7 @@
       cover.hidden=true; stop.hidden=false; retry.hidden=false;
       panel.classList.add('is-live');
       // Cross-origin load events are not proof the application is ready.
-      status.textContent='Start inside the window. STOP releases the live site; EXPAND gives it more room.';
+      status.textContent='Explore the original WSS2 landing world, then enter the game inside the same frame. EXPAND keeps the same session.';
       stop.focus({preventScroll:true});
     }
     start.addEventListener('click',activate,{signal});
