@@ -2,11 +2,12 @@
 (() => {
   'use strict';
   const URL = 'https://shhh-hoo.github.io/WSS2/';
+  const GAME_URL = 'https://shhh-hoo.github.io/WSS2/wss2.html';
   function mount(article, root, onStart) {
     const panel=article.querySelector('.wss-live-panel'), slot=panel.parentElement;
     const frameMount=panel.querySelector('[data-live-frame]'), cover=panel.querySelector('.wss-live-cover');
     const start=panel.querySelector('[data-live-start]'), stop=panel.querySelector('[data-live-stop]');
-    const expand=panel.querySelector('[data-live-expand]'), retry=panel.querySelector('[data-live-retry]');
+    const expand=panel.querySelector('[data-live-expand]'), game=panel.querySelector('[data-live-game]'), retry=panel.querySelector('[data-live-retry]');
     const status=panel.querySelector('[data-live-status]');
     const abort=new AbortController(), {signal}=abort;
     let frame=null, expanded=false, savedTop=0, alive=true;
@@ -19,7 +20,7 @@
     }
     function unload(message='Stopped. Activate to return to the original WSS2 experience.', focus=false) {
       if (frame) { frame.remove(); frame=null; }
-      cover.hidden=false; stop.hidden=true; retry.hidden=true;
+      cover.hidden=false; stop.hidden=true; game.hidden=true; retry.hidden=true;
       panel.classList.remove('is-live'); status.textContent=message;
       if (focus) start.focus({preventScroll:true});
     }
@@ -33,13 +34,19 @@
       frame.referrerPolicy='strict-origin-when-cross-origin';
       frame.src=URL;
       frameMount.appendChild(frame);
-      cover.hidden=true; stop.hidden=false; retry.hidden=false;
+      cover.hidden=true; stop.hidden=false; game.hidden=false; retry.hidden=false;
       panel.classList.add('is-live');
       // Cross-origin load events are not proof the application is ready.
       status.textContent='Explore the original WSS2 landing world, then enter the game inside the same frame. EXPAND keeps the same session.';
       stop.focus({preventScroll:true});
     }
     start.addEventListener('click',activate,{signal});
+    game.addEventListener('click',()=>{
+      if (!frame) activate();
+      if (!frame) return;
+      frame.src=GAME_URL;
+      status.textContent='Opening the original live quiz in the same frame. The root experience remains the default entry.';
+    },{signal});
     stop.addEventListener('click',()=>{collapse(false);unload(undefined,true);},{signal});
     retry.addEventListener('click',()=>{unload();activate();},{signal});
     expand.addEventListener('click',()=>{
