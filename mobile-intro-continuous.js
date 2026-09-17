@@ -19,7 +19,9 @@
     let stack=document.getElementById("mobileContinuousIntroStack");
     if(stack) return stack;
 
-    magnifier.innerHTML="";
+    // Keep the legacy mobileMagnifiedLine node in place because mobile-v2
+    // still updates it internally. CSS hides that node; this continuous stack
+    // is the visible optical layer.
     stack=document.createElement("div");
     stack.className="mobile-continuous-intro-stack";
     stack.id="mobileContinuousIntroStack";
@@ -77,9 +79,9 @@
     const lastCenter=last.offsetTop+last.offsetHeight/2;
     const sourceY=lerp(firstCenter,lastCenter,p);
 
-    // Keep the selected source coordinate centered in the scan while allowing
-    // a small horizontal drift so the optical readout feels displaced rather
-    // than like a perfect duplicate of the underlying text.
+    // The source coordinate and the physical scan coordinate are independent:
+    // every intro line is guaranteed to pass through the window in order while
+    // the scanner itself travels only from the top edge to its working position.
     const xShift=lerp(0,14,p);
     const yShift=scanY-sourceY;
     stack.style.transform=`translate3d(${xShift}px,${yShift}px,0)`;
