@@ -10,10 +10,13 @@
 
   const MOVE_LIMIT=10;
   const TAP_MAX_MS=520;
-  const HOLD_MS=1050;
+  const SETTLE_MS=220;
+  const DWELL_MS=1300;
 
   let pointer=null;
-  let holdTimer=0;
+  let autoTimer=0;
+  let lastScrollAt=0;
+  let suppressAutoUntilGesture=false;
 
   const projectActive=()=>
     scene.classList.contains("mobile-scan-active") &&
@@ -21,49 +24,67 @@
     !scanWorld.classList.contains("intro-magnifier") &&
     !scene.classList.contains("opened");
 
-  function clearHold(){
-    if(holdTimer){
-      clearTimeout(holdTimer);
-      holdTimer=0;
+  const projectKey=()=>projectActive() ? (scanWorld.dataset.slug || "project") : null;
+
+  function clearAuto(){
+    if(autoTimer){
+      clearTimeout(autoTimer);
+      autoTimer=0;
     }
   }
 
   function enterActiveProject(){
     if(!projectActive()) return;
-    clearHold();
+    clearAuto();
+    suppressAutoUntilGesture=true;
 
-    // Reuse the existing, already-tested mobile project-open path. This is a
-    // single synchronous click, not a recurring timer or observer loop.
+    // Reuse the existing mobile project-open path. This is a single synchronous
+    // click; there is no observer, polling loop, or repeating timer.
     hit.click();
   }
 
-  function cancelPointer(){
-    clearHold();
-    pointer=null;
+  function armDwellAfterSettle(){
+    clearAuto();
+    if(suppressAutoUntilGesture) return;
+
+    autoTimer=setTimeout(()=>{
+      autoTimer=0;
+      if(suppressAutoUntilGesture || !projectActive()) return;
+
+      const key=projectKey();
+      if(!key) return;
+      const settledAt=performance.now();
+
+      autoTimer=setTimeout(()=>{
+        autoTimer=0;
+        if(suppressAutoUntilGesture || !projectActive()) return;
+        if(projectKey()!==key) return;
+        if(performance.now()-lastScrollAt < SETTLE_MS+DWELL_MS-20) return;
+        if(performance.now()-settledAt < DWELL_MS-20) return;
+        enterActiveProject();
+      },DWELL_MS);
+    },SETTLE_MS);
   }
 
   viewport.addEventListener("pointerdown",e=>{
-    if(!projectActive()) return;
     if(e.pointerType==="mouse" && e.button!==0) return;
 
-    clearHold();
+    // A fresh physical gesture re-enables dwell after returning from a project.
+    if(!scene.classList.contains("opened")) suppressAutoUntilGesture=false;
+    clearAuto();
+
+    if(!projectActive()){
+      pointer=null;
+      return;
+    }
+
     pointer={
       id:e.pointerId,
       x:e.clientX,
       y:e.clientY,
       startedAt:performance.now(),
-      moved:false,
-      opened:false
+      moved:false
     };
-
-    const pointerId=e.pointerId;
-    holdTimer=setTimeout(()=>{
-      holdTimer=0;
-      if(!pointer || pointer.id!==pointerId || pointer.moved) return;
-      if(!projectActive()) return;
-      pointer.opened=true;
-      enterActiveProject();
-    },HOLD_MS);
   },true);
 
   viewport.addEventListener("pointermove",e=>{
@@ -72,7 +93,7 @@
     const dy=e.clientY-pointer.y;
     if(Math.hypot(dx,dy)>MOVE_LIMIT){
       pointer.moved=true;
-      clearHold();
+      clearAuto();
     }
   },true);
 
@@ -81,28 +102,41 @@
 
     const p=pointer;
     pointer=null;
-    clearHold();
-
-    if(p.opened) return;
 
     const elapsed=performance.now()-p.startedAt;
     const blockedTarget=e.target.closest?.("#backBtn,#projectWorld");
     if(projectActive() && !p.moved && elapsed<=TAP_MAX_MS && !blockedTarget){
       enterActiveProject();
+      return;
     }
+
+    // A drag will also generate scroll events; those own dwell scheduling.
   },true);
 
-  viewport.addEventListener("pointercancel",cancelPointer,true);
+  viewport.addEventListener("pointercancel",()=>{
+    pointer=null;
+    clearAuto();
+  },true);
 
-  // Any actual scroll cancels a pending long press. There are no scroll-settle
-  // timers and no ambient auto-entry timers after the finger leaves the screen.
   window.addEventListener("scroll",()=>{
+    lastScrollAt=performance.now();
+    clearAuto();
+
     if(pointer) pointer.moved=true;
-    clearHold();
+    if(suppressAutoUntilGesture) return;
+
+    // mobile-v2 updates the active scan in rAF. Waiting for settle ensures the
+    // candidate is taken only after momentum and scan ownership have stabilized.
+    armDwellAfterSettle();
   },{passive:true});
 
-  // Prevent the browser context menu from competing with the deliberate
-  // project long-press gesture. Intro and opened project pages are unaffected.
+  window.addEventListener("resize",()=>{
+    clearAuto();
+    pointer=null;
+  },{passive:true});
+
+  // Long-press context menus are not useful while the project scan owns the
+  // screen and can interfere with tap/scroll gesture recognition.
   viewport.addEventListener("contextmenu",e=>{
     if(projectActive()) e.preventDefault();
   },true);
