@@ -4,7 +4,7 @@ import http.server
 import json
 import pathlib
 import threading
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, expect
 
 root = pathlib.Path.cwd()
 out = root / 'evidence'
@@ -45,7 +45,11 @@ with sync_playwright() as p:
             for key,position in [('organise',.95),('connect',2.15),('rehearse',3.85),('finish',5)]:
                 pose(page,position)
                 selector='#diagramSvg' if key=='connect' else '#session-setup' if key in ['rehearse','finish'] else '#homepage-hero-title'
-                page.frame_locator('.atlas-current iframe').locator(selector).wait_for(state='attached')
+                child=page.frame_locator('.atlas-current iframe')
+                child.locator(selector).wait_for(state='attached')
+                if key in ['rehearse','finish']:
+                    expect(child.locator('#session-start')).to_be_enabled(timeout=18000)
+                    expect(child.locator('#current-set-summary')).not_to_contain_text('Loading',timeout=18000)
                 page.wait_for_timeout(600)
                 page.screenshot(path=str(out/(label+'-'+key+'.png')))
                 assert page.locator('.atlas9701 iframe').count()<=2
@@ -65,7 +69,7 @@ with sync_playwright() as p:
                 page.mouse.move(x,y)
                 page.mouse.click(x,y)
             else:
-                page.evaluate('()=>{const e=document.querySelector(".mobile-project[data-project=\"5\"]");window.scrollTo(0,e.offsetTop-100);}')
+                page.locator('.mobile-project').nth(5).evaluate('(e)=>window.scrollTo(0,e.offsetTop-100)')
                 page.wait_for_timeout(400)
                 page.touchscreen.tap(330,650)
             page.wait_for_selector('#scene.opened')
@@ -79,14 +83,14 @@ with sync_playwright() as p:
             page.go_forward()
             page.wait_for_selector('#scene.opened')
             passed(label+'/browser-forward')
-            page.locator('[data-chapter="0"]').click()
+            page.locator('button[data-chapter="0"]').click()
             page.wait_for_timeout(1100)
             for route in ['as','a2','home']:
                 page.locator('[data-route="'+route+'"]').click()
                 page.frame_locator('.atlas-current iframe').locator('h1').wait_for()
                 page.wait_for_timeout(250)
                 passed(label+'/route-'+route)
-            page.locator('[data-chapter="1"]').click()
+            page.locator('button[data-chapter="1"]').click()
             page.wait_for_timeout(1100)
             frame=page.frame_locator('.atlas-current iframe')
             frame.locator('#graphBtn').wait_for(state='attached')
@@ -111,7 +115,7 @@ with sync_playwright() as p:
             page.wait_for_function('!document.querySelector("dialog.atlas-is-live")')
             assert page.locator('#scene.opened').count()==1
             passed(label+'/toolbar-escape-does-not-exit-project')
-            page.locator('[data-chapter="2"]').click()
+            page.locator('button[data-chapter="2"]').click()
             page.wait_for_timeout(1100)
             frame=page.frame_locator('.atlas-current iframe')
             frame.locator('#session-start').wait_for(state='attached')
@@ -148,7 +152,7 @@ with sync_playwright() as p:
             page.wait_for_selector('#scene.opened')
             page.frame_locator('.atlas-current iframe').locator('#homepage-hero-title').wait_for()
             page.screenshot(path=str(out/(str(width)+'-reduced-cover.png')))
-            page.locator('[data-chapter="1"]').click()
+            page.locator('button[data-chapter="1"]').click()
             page.frame_locator('.atlas-current iframe').locator('#diagramSvg').wait_for(state='attached')
             page.locator('.atlas-current .atlas-enter').click()
             page.wait_for_selector('dialog.atlas-is-live:modal')
