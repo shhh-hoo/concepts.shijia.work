@@ -111,44 +111,12 @@ function asset(tag,caption,cls=""){
 }
 
 function renderProjectPage(i){
+  WSSContent.destroy();
   const p=projects[i];
   let html="";
 
   if(p.slug==="wss"){
-    html += heroShell(
-      "world-wss",
-      "01 / WSS — CHAPTER I",
-      "WSS",
-      p.statement,
-      "NEON PINK / ELECTRIC BLUE / BLACK",
-      `<div class="color-field wss-f1"></div><div class="color-field wss-f2"></div><div class="color-field wss-f3"></div>`
-    );
-    html += `
-      <section class="project-page project-assets world-wss-assets">
-        <p class="asset-label">ASSET RHYTHM / VIDEO FIRST</p>
-        ${asset("01 / DOMINANT","FULL-WIDTH STAGE VIDEO OR EVENT MOMENT — THE SHOW BEFORE THE SOFTWARE.","asset-main stage-video")}
-        <div class="asset-row">
-          ${asset("02 / PRODUCT","QUESTION SCREEN / VISUAL IDENTITY / SCORE MOMENT.","screen-shot")}
-          ${asset("03 / EVIDENCE","TEAM / AUDIENCE / LIVE COMPETITION PHOTO.","event-photo")}
-        </div>
-      </section>`;
-    html += heroShell(
-      "world-wss2",
-      "01 / WSS2 — CHAPTER II",
-      "WSS2",
-      "THE SAME LIVE COMPETITION RECAST AS TWO THEATRICAL WORLDS: BRIGHT PINK AGAINST DARK EMERALD, WITH IVORY, GREEN AND GOLD AS SUPPORT.",
-      "DARK EMERALD / BRIGHT PINK / IVORY / GREEN / GOLD",
-      `<div class="color-field wss2-f1"></div><div class="color-field wss2-f2"></div><div class="color-field wss2-f3"></div><div class="color-field wss2-f4"></div>`
-    );
-    html += `
-      <section class="project-page project-assets world-wss2-assets">
-        <p class="asset-label">CHAPTER CHANGE / SAME SHOW, NEW WORLD</p>
-        ${asset("01 / DOMINANT","WSS2 STAGE IMAGE OR VIDEO — LET THE GOOD / WICKED COLOR SYSTEM TAKE OVER THE FRAME.","asset-main primary")}
-        <div class="asset-row equal">
-          ${asset("02 / VISUAL IDENTITY","QUESTION / TITLE / STAGE SCREEN COMPOSITION.","green")}
-          ${asset("03 / ATMOSPHERE","EVENT STILL OR ARTWORK DETAIL — LARGE, NOT A GALLERY GRID.","gold")}
-        </div>
-      </section>`;
+    html = WSSContent.render(p);
   }
 
   if(p.slug==="bnc"){
@@ -254,6 +222,7 @@ function renderProjectPage(i){
 
   projectScroll.innerHTML=html;
   projectScroll.scrollTop=0;
+  WSSContent.mount(p.slug === "wss", projectScroll);
 }
 
 function sheetPolygons(){
@@ -354,7 +323,12 @@ function openProject(){
     const baseLen=Math.hypot(axisX,axisY);
     const ux=axisX/baseLen;
     const uy=axisY/baseLen;
-    const travel=baseLen*1.48;
+    // The WSS world fills the real viewport, even when the index is scaled down.
+    // Keep the shared diagonal axis, but clear the viewport on tall phones.
+    const outerTransform=getComputedStyle(scene).transform;
+    const outerScale=outerTransform==="none" ? 1 : Math.abs(new DOMMatrixReadOnly(outerTransform).a);
+    const viewportTravel=(window.innerHeight/2+scene.offsetHeight*outerScale/2+24)/(Math.abs(uy)*outerScale);
+    const travel=projects[active].slug==="wss" ? Math.max(baseLen*1.48,viewportTravel) : baseLen*1.48;
 
     sheets.forEach((sheet,sheetIndex)=>{
       let sign;
@@ -374,6 +348,7 @@ function openProject(){
 
   setTimeout(()=>{
     state="opened";
+    WSSContent.activate();
     scene.classList.add("opened");
     scanWorld.classList.remove("show");
   },1250);
@@ -383,6 +358,7 @@ function closeProject(){
   if(state!=="opened") return;
 
   state="closing";
+  WSSContent.pause();
   scene.classList.remove("opened");
   scanWorld.classList.remove("commit");
 
@@ -399,6 +375,7 @@ function closeProject(){
     scanWorld.classList.remove("show");
     active=null;
     state="index";
+    WSSContent.destroy();
   },1180);
 }
 
