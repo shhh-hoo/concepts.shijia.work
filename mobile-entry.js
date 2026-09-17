@@ -14,7 +14,6 @@
 
   let pointer=null;
   let holdTimer=0;
-  let opening=false;
 
   const projectActive=()=>
     scene.classList.contains("mobile-scan-active") &&
@@ -30,20 +29,12 @@
   }
 
   function enterActiveProject(){
-    if(opening || !projectActive()) return;
-    opening=true;
+    if(!projectActive()) return;
     clearHold();
 
     // Reuse the existing, already-tested mobile project-open path. This is a
     // single synchronous click, not a recurring timer or observer loop.
     hit.click();
-
-    // If opening was rejected because ownership changed on the same frame,
-    // release the guard. Otherwise the opened state makes projectActive false.
-    queueMicrotask(()=>{
-      opening=scene.classList.contains("opened");
-      if(!opening) opening=false;
-    });
   }
 
   function cancelPointer(){
