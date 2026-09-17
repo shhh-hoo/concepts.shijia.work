@@ -6,6 +6,8 @@ from pathlib import Path
 from playwright.async_api import async_playwright, expect
 from browser_checks import inline_site
 
+ROOT_URL='https://shhh-hoo.github.io/WSS2/'
+
 async def run(args):
     root=Path(args.root).resolve();out=Path(args.output);out.mkdir(parents=True,exist_ok=True)
     records=[];completed=False
@@ -35,11 +37,18 @@ async def run(args):
                 await page.locator('[data-live-start]').click()
                 iframe=page.locator('.wss-frame-mount iframe')
                 assert await iframe.count()==1
-                assert await iframe.get_attribute('src')=='https://shhh-hoo.github.io/WSS2/wss2.html'
+                assert await iframe.get_attribute('src')==ROOT_URL
                 assert "camera 'none'" in await iframe.get_attribute('allow')
                 assert "microphone 'none'" in await iframe.get_attribute('allow')
                 assert await page.evaluate('[...document.querySelectorAll("video")].every(v=>v.paused)')
-                ok(label+': explicit activation creates the original URL; cameras denied; films paused')
+                ok(label+': explicit activation creates the ORIGINAL LANDING URL; cameras denied; films paused')
+                frame=page.frame_locator('.wss-frame-mount iframe')
+                if args.live:
+                    await frame.locator('#enterBtn').wait_for(timeout=45000)
+                    await page.wait_for_timeout(700)
+                    await page.screenshot(path=str(out/(label+'-root-inline.png')))
+                    assert await frame.locator('#enterBtn').get_attribute('href')=='./wss2.html'
+                    ok(label+': REAL HTTPS root landing renders before the game and exposes its native Enter WSS2 path')
                 await page.evaluate('window.testFrame=document.querySelector("iframe");window.testWindow=testFrame.contentWindow;window.testTop=projectScroll.scrollTop')
                 await page.locator('[data-live-expand]').click()
                 assert await page.locator('dialog:modal').count()==1
@@ -48,9 +57,12 @@ async def run(args):
                 assert 0<=bounds['x']<20 and bounds['width']>width-35,bounds
                 ok(label+': expanded native dialog keeps the same iframe/window, rather than reloading it')
                 if args.live:
-                    frame=page.frame_locator('.wss-frame-mount iframe')
+                    await page.wait_for_timeout(500)
+                    await page.screenshot(path=str(out/(label+'-root-expanded.png')))
+                    await frame.locator('#enterBtn').click()
                     await frame.locator('#start-btn:not(.pointer-events-none)').wait_for(timeout=45000)
-                    await page.screenshot(path=str(out/(label+'-live-entry.png')))
+                    await page.wait_for_timeout(700)
+                    await page.screenshot(path=str(out/(label+'-game-entry.png')))
                     restart=frame.locator('[data-action="restartProgress"]')
                     if await restart.is_visible():await restart.click()
                     await frame.locator('#start-btn').click()
@@ -68,13 +80,13 @@ async def run(args):
                     await carousel.locator('.arched-card').nth(index).click()
                     await frame.locator('#view-quiz.active').wait_for(timeout=10000)
                     await frame.locator('#quiz-options button').first.wait_for(state='visible')
-                    await page.wait_for_timeout(1500)  # Original card-to-question animation must settle.
+                    await page.wait_for_timeout(1500)
                     await page.screenshot(path=str(out/(label+'-live-question.png')))
                     await frame.locator('#quiz-options button').first.click()
                     await page.wait_for_timeout(700)
                     await frame.locator('[data-action="backToSelection"]').click()
                     await frame.locator('#view-selection.active').wait_for()
-                    ok(label+': REAL HTTPS app — start, gather 16, select, answer, feedback, return')
+                    ok(label+': REAL HTTPS root → game — start, gather 16, select, answer, feedback, return')
                 await page.locator('[data-live-expand]').click()
                 assert await page.locator('dialog:modal').count()==0
                 assert await page.evaluate('testFrame===document.querySelector("iframe")&&testWindow===testFrame.contentWindow')
@@ -112,7 +124,7 @@ async def run(args):
             completed=True
         finally:
             await browser.close()
-            (out/'report.json').write_text(json.dumps({'completed':completed,'mode':'actual remote app inside integrated page' if args.live else 'parent controller only','offline':args.offline,'count':len(records),'checks':records},indent=2))
+            (out/'report.json').write_text(json.dumps({'completed':completed,'mode':'actual remote root-to-game app inside integrated page' if args.live else 'parent controller only','offline':args.offline,'count':len(records),'checks':records},indent=2))
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--root',default='.');parser.add_argument('--output',default='/tmp/wss-showbook');parser.add_argument('--base-url',default='http://127.0.0.1:8765/');parser.add_argument('--offline',action='store_true');parser.add_argument('--live',action='store_true');args=parser.parse_args()
     if args.offline and args.live:parser.error('Remote app verification requires real HTTP mode.')
