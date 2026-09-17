@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>concept.shijia.work — redesigned diagonal frontpage</title>
 <link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="navigation.css" />
 <link rel="stylesheet" href="mobile-tokens.css" />
 <link rel="stylesheet" href="mobile.css" />
 <link rel="stylesheet" href="mobile-refine.css" />
@@ -33,5 +34,12 @@
 <script src="mobile-v2.js"></script>
 <script src="mobile-intro-stepped.js"></script>
 <script src="mobile-entry.js"></script>
+<script>
+if(!window.matchMedia("(max-width:699px)").matches){
+  const navigationScript=document.createElement("script");
+  navigationScript.src="navigation.js";
+  document.body.appendChild(navigationScript);
+}
+</script>
 </body>
 </html>
