@@ -1,5 +1,5 @@
 @media (max-width:699px){
-  :root{--mobile-scan-y:56dvh;--mobile-scan-band:82px}
+  :root{--mobile-scan-y:clamp(220px,34dvh,292px);--mobile-scan-band:108px}
 
   html,body{
     width:100%;height:auto;min-height:100%;
