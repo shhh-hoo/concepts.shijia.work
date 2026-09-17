@@ -22,9 +22,9 @@ async def run(args):
                 await frame.locator('#enterBtn').wait_for(timeout=45000)
                 assert await page.locator('iframe').get_attribute('src')=='https://shhh-hoo.github.io/WSS2/'
                 await frame.locator('#enterBtn').click()
-                child=[f for f in page.frames if f.parent_frame is not None][0]
-                await child.wait_for_url('**/WSS2/wss2.html', timeout=20000)
                 await frame.locator('#start-btn').wait_for(timeout=45000)
+                child=[f for f in page.frames if f.parent_frame is not None][0]
+                assert child.url.endswith('/WSS2/wss2.html'), child.url
                 checks.append(label+': downloaded file opens original WSS2 root, then reaches the real game in the same iframe')
                 await page.locator('[data-live-stop]').click()
                 await page.locator('.wss-bar [data-return]').click()
