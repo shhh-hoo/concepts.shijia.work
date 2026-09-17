@@ -1,0 +1,31 @@
+@media (max-width:699px){
+  /* Mobile-only top-boundary pull-to-index interaction. */
+  .return-pulling #stage{
+    visibility:visible!important;
+    z-index:0;
+  }
+
+  .return-pulling #projectWorld{
+    transform:translate3d(0,var(--return-pull,0px),0)!important;
+    transition:none!important;
+    will-change:transform,opacity;
+  }
+
+  .return-pulling.return-resetting #projectWorld{
+    transform:translate3d(0,0,0)!important;
+    transition:transform 180ms var(--ease),opacity 160ms ease!important;
+  }
+
+  .return-pulling.return-committing #projectWorld{
+    transform:translate3d(0,100dvh,0)!important;
+    opacity:0;
+    transition:transform 180ms var(--ease),opacity 150ms ease!important;
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .return-pulling.return-resetting #projectWorld,
+    .return-pulling.return-committing #projectWorld{
+      transition-duration:1ms!important;
+    }
+  }
+}
