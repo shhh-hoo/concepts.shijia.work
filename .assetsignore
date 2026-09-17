@@ -9,3 +9,7 @@ node_modules
 package.json
 package-lock.json
 src
+wss/tests
+wss/tools
+wss/README.md
+**/__pycache__

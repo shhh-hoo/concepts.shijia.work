@@ -3,20 +3,48 @@ on:
   push:
     branches: [feat/wss-editorial-content]
   pull_request:
-    paths: [wss/**, index.html, .github/workflows/wss-content.yml]
+    paths: [wss/**, app.js, navigation.js, index.html, .github/workflows/wss-content.yml]
 permissions:
   contents: read
 jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check JavaScript
+        run: |
+          for file in app.js data.js navigation.js wss/content.js; do node --check "$file"; done
+      - name: Install browser test dependencies
+        run: |
+          python -m pip install playwright==1.57.0 Pillow
+          python -m playwright install --with-deps chromium
+          command -v ffmpeg || { sudo apt-get update && sudo apt-get install -y ffmpeg; }
+      - name: Create isolated functional-test fixtures
+        run: python wss/tests/make_fixtures.py /tmp/wss-functional-site
+      - name: Exercise genuine HTTP navigation and media lifecycle
+        env:
+          WSS_TEST_MEDIA: synthetic fixtures for functional tests only; actual publication media verified separately
+        run: |
+          python -m http.server 8765 --bind 127.0.0.1 --directory /tmp/wss-functional-site > /tmp/wss-server.log 2>&1 &
+          for attempt in $(seq 1 20); do curl -fsS http://127.0.0.1:8765/ > /dev/null && break || sleep 1; done
+          python wss/tests/browser_checks.py --root /tmp/wss-functional-site --base-url http://127.0.0.1:8765/ --output /tmp/wss-functional-report
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wss-functional-report-NOT-visual-review
+          path: |
+            /tmp/wss-functional-report
+            /tmp/wss-server.log
+          retention-days: 14
   package:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check JavaScript
-        run: |
-          for file in app.js data.js navigation.js mobile.js wss/content.js; do
-            if [ -f "$file" ]; then node --check "$file"; fi
-          done
-      - name: Package site
+      - name: Package source only (publication media provisioned separately)
         run: |
           mkdir -p /tmp/wss-site
           tar --exclude=.git --exclude=.github -cf /tmp/wss-site/site.tar .
@@ -24,4 +52,4 @@ jobs:
         with:
           name: wss-content-site
           path: /tmp/wss-site/site.tar
-          retention-days: 7
+          retention-days: 14
