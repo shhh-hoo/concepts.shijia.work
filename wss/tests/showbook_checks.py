@@ -60,9 +60,9 @@ async def run(args):
                     await page.wait_for_timeout(500)
                     await page.screenshot(path=str(out/(label+'-root-expanded.png')))
                     await frame.locator('#enterBtn').click()
-                    child=[f for f in page.frames if f.parent_frame is not None][0]
-                    await child.wait_for_url('**/WSS2/wss2.html', timeout=20000)
                     await frame.locator('#start-btn').wait_for(timeout=45000)
+                    child=[f for f in page.frames if f.parent_frame is not None][0]
+                    assert child.url.endswith('/WSS2/wss2.html'), child.url
                     await page.wait_for_timeout(700)
                     await page.screenshot(path=str(out/(label+'-game-entry.png')))
                     ok(label+': REAL HTTPS root navigates into the original game inside the SAME iframe')
