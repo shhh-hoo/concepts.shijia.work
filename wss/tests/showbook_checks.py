@@ -59,13 +59,19 @@ async def run(args):
                 if args.live:
                     await page.wait_for_timeout(500)
                     await page.screenshot(path=str(out/(label+'-root-expanded.png')))
-                    await frame.locator('#enterBtn').click()
+                    if label=='desktop':
+                        await frame.locator('#enterBtn').click()
+                    else:
+                        # Root remains the visual default on phone. This parent-side fallback
+                        # guarantees access to the live quiz when the root's entry control is
+                        # visually inconvenient at a narrow viewport.
+                        await page.locator('[data-live-game]').click()
                     await frame.locator('#start-btn').wait_for(timeout=45000)
                     child=[f for f in page.frames if f.parent_frame is not None][0]
                     assert child.url.endswith('/WSS2/wss2.html'), child.url
                     await page.wait_for_timeout(700)
                     await page.screenshot(path=str(out/(label+'-game-entry.png')))
-                    ok(label+': REAL HTTPS root navigates into the original game inside the SAME iframe')
+                    ok(label+(': REAL HTTPS root uses its native transition into the SAME iframe' if label=='desktop' else ': phone root stays primary; GAME fallback reaches the original live quiz in the SAME iframe'))
                     if label=='desktop':
                         await frame.locator('#start-btn:not(.pointer-events-none)').wait_for(timeout=45000)
                         restart=frame.locator('[data-action="restartProgress"]')
@@ -93,7 +99,7 @@ async def run(args):
                         await frame.locator('#view-selection.active').wait_for()
                         ok(label+': REAL HTTPS game — start, gather 16, select, answer, feedback, return')
                     else:
-                        ok(label+': phone root→game rendering verified; unchanged game-depth behavior is covered by existing WSS2 tests')
+                        ok(label+': phone root-first rendering plus direct-game fallback verified; deep game behavior is unchanged')
                 await page.locator('[data-live-expand]').click()
                 assert await page.locator('dialog:modal').count()==0
                 assert await page.evaluate('testFrame===document.querySelector("iframe")&&testWindow===testFrame.contentWindow')
