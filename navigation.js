@@ -1,31 +1,19 @@
-/* Navigation history + overscroll-to-index interaction. */
+/* Navigation history + touch overscroll-to-index interaction. */
 (() => {
   const rawOpenProject = openProject;
   const rawCloseProject = closeProject;
 
-  const TOUCH_DEAD_ZONE = 12;
+  const TOUCH_INTENT = 3;
   const TOUCH_COMMIT = 84;
-  const DESKTOP_DEAD_ZONE = 28;
-  const DESKTOP_COMMIT = 170;
-  const DESKTOP_MIN_EVENTS = 3;
-  const DESKTOP_MIN_DURATION = 150;
-  const WHEEL_SETTLE_MS = 120;
-  const RESET_MS = 240;
+  const RESET_MS = 180;
   const CLOSE_MS = 1220;
 
   let currentProjectIndex = null;
   let pendingRouteTimer = null;
   let returnCleanupTimer = null;
 
-  let touchActive = false;
-  let touchReady = false;
-  let touchLastY = 0;
-  let touchPull = 0;
-
-  let wheelAccum = 0;
-  let wheelEvents = 0;
-  let wheelStartedAt = 0;
-  let wheelTimer = null;
+  let touchSession = null;
+  const activeTouchMoveOptions = {passive:false};
 
   function indexUrl(){
     return `${location.pathname}${location.search}`;
@@ -45,22 +33,16 @@
     return rect.height ? rect.height/1024 : 1;
   }
 
-  function pullVisualPx(raw,deadZone,commit){
-    const effective=Math.max(0,raw-deadZone);
-    const range=Math.max(1,commit-deadZone);
-    const normalized=Math.min(1,effective/range);
-    return 56*(1-Math.pow(1-normalized,1.7));
-  }
-
-  function setReturnPull(raw,deadZone,commit){
-    const visual=pullVisualPx(raw,deadZone,commit);
+  function setReturnPull(screenPx){
     const scale=Math.max(.01,currentScale());
+    const pull=Math.max(0,screenPx);
+
     scene.classList.add("return-pulling");
-    scene.classList.remove("return-resetting");
-    scene.style.setProperty("--return-pull",`${visual/scale}px`);
+    scene.classList.remove("return-resetting","return-committing");
+    scene.style.setProperty("--return-pull",`${pull/scale}px`);
     scene.style.setProperty(
       "--return-progress",
-      `${Math.min(1,Math.max(0,(raw-deadZone)/Math.max(1,commit-deadZone)))}`
+      `${Math.min(1,pull/TOUCH_COMMIT)}`
     );
   }
 
@@ -94,9 +76,12 @@
       clearTimeout(returnCleanupTimer);
       returnCleanupTimer=null;
     }
-    scene.classList.add("return-pulling","return-resetting","return-committing");
+
+    scene.classList.add("return-pulling","return-committing");
+    scene.classList.remove("return-resetting");
     scene.style.setProperty("--return-pull","0px");
     scene.style.setProperty("--return-progress","1");
+
     returnCleanupTimer=setTimeout(()=>{
       scene.classList.remove("return-pulling","return-resetting","return-committing");
       scene.style.removeProperty("--return-pull");
@@ -227,121 +212,88 @@
   },true);
 
   window.addEventListener("popstate",()=>{
+    endTouchSession({cancelVisual:false});
     if(!scene.classList.contains("return-committing")) clearReturnPull(true);
     syncRoute();
   });
 
-  function resetTouch(){
-    touchActive=false;
-    touchReady=false;
-    touchLastY=0;
-    touchPull=0;
+  /*
+    Keep normal scrolling compositor-native:
+    - there is no wheel listener at all
+    - there is no permanent non-passive touchmove listener
+    - a non-passive touchmove listener exists only for a gesture that STARTS
+      while the project scroller is already at its top boundary
+  */
+  function removeActiveTouchMove(){
+    projectScroll.removeEventListener("touchmove",onTopTouchMove,activeTouchMoveOptions);
   }
 
-  projectScroll.addEventListener("touchstart",e=>{
-    if(state!=="opened" || e.touches.length!==1){
-      resetTouch();
-      return;
-    }
-
-    touchActive=true;
-    touchReady=projectScroll.scrollTop<=.5;
-    touchLastY=e.touches[0].clientY;
-    touchPull=0;
-  },{passive:true});
-
-  projectScroll.addEventListener("touchmove",e=>{
-    if(!touchActive || state!=="opened" || e.touches.length!==1) return;
-
-    const y=e.touches[0].clientY;
-    const delta=y-touchLastY;
-    touchLastY=y;
-
-    if(!touchReady){
-      if(projectScroll.scrollTop<=.5 && delta>0) touchReady=true;
-      else return;
-    }
-
-    if(projectScroll.scrollTop>.5 && touchPull<=0){
-      touchReady=false;
-      return;
-    }
-
-    touchPull=Math.max(0,touchPull+delta);
-    if(touchPull>0){
-      e.preventDefault();
-      setReturnPull(touchPull,TOUCH_DEAD_ZONE,TOUCH_COMMIT);
-    }
-  },{passive:false});
-
-  function finishTouch(){
-    if(!touchActive) return;
-    const shouldReturn=touchReady && touchPull>=TOUCH_COMMIT && state==="opened";
-    resetTouch();
-    if(shouldReturn) navigateToIndex({fromGesture:true});
-    else clearReturnPull();
-  }
-
-  projectScroll.addEventListener("touchend",finishTouch,{passive:true});
-  projectScroll.addEventListener("touchcancel",()=>{
-    resetTouch();
-    clearReturnPull();
-  },{passive:true});
-
-  function resetWheel(cancelVisual=true){
-    wheelAccum=0;
-    wheelEvents=0;
-    wheelStartedAt=0;
-    if(wheelTimer){
-      clearTimeout(wheelTimer);
-      wheelTimer=null;
-    }
+  function endTouchSession({cancelVisual=true}={}){
+    removeActiveTouchMove();
+    touchSession=null;
     if(cancelVisual) clearReturnPull();
   }
 
-  function normalizedWheelDelta(e){
-    const unit=e.deltaMode===1 ? 16 : e.deltaMode===2 ? window.innerHeight : 1;
-    return Math.abs(e.deltaY)*unit;
+  function onTopTouchMove(e){
+    if(!touchSession || state!=="opened" || e.touches.length!==1){
+      endTouchSession();
+      return;
+    }
+
+    const total=e.touches[0].clientY-touchSession.startY;
+
+    if(!touchSession.engaged){
+      if(total<=-TOUCH_INTENT){
+        // This is a normal swipe into the project. Stop observing immediately
+        // so the rest of the gesture stays on the browser's native scroll path.
+        endTouchSession({cancelVisual:false});
+        return;
+      }
+
+      if(total<TOUCH_INTENT) return;
+      touchSession.engaged=true;
+    }
+
+    // Once the user has deliberately pulled beyond the top boundary,
+    // own only this gesture. Movement is linear: finger pixels == screen pixels.
+    e.preventDefault();
+    touchSession.pull=Math.max(0,total);
+    setReturnPull(touchSession.pull);
   }
 
-  projectScroll.addEventListener("wheel",e=>{
-    if(state!=="opened"){
-      resetWheel(false);
+  projectScroll.addEventListener("touchstart",e=>{
+    if(state!=="opened" || e.touches.length!==1 || projectScroll.scrollTop>.5){
       return;
     }
 
-    if(projectScroll.scrollTop>.5 || e.deltaY>=0){
-      if(wheelAccum>0) resetWheel();
-      return;
-    }
+    endTouchSession({cancelVisual:false});
+    touchSession={
+      startY:e.touches[0].clientY,
+      pull:0,
+      engaged:false
+    };
+    projectScroll.addEventListener("touchmove",onTopTouchMove,activeTouchMoveOptions);
+  },{passive:true});
 
-    e.preventDefault();
+  projectScroll.addEventListener("touchend",()=>{
+    if(!touchSession) return;
 
-    const now=performance.now();
-    if(!wheelStartedAt) wheelStartedAt=now;
-    wheelAccum+=normalizedWheelDelta(e);
-    wheelEvents+=1;
-    setReturnPull(wheelAccum,DESKTOP_DEAD_ZONE,DESKTOP_COMMIT);
+    const shouldReturn=
+      touchSession.engaged &&
+      touchSession.pull>=TOUCH_COMMIT &&
+      state==="opened";
 
-    if(wheelTimer) clearTimeout(wheelTimer);
-    wheelTimer=setTimeout(()=>{
-      const duration=performance.now()-wheelStartedAt;
-      const shouldReturn=
-        state==="opened" &&
-        projectScroll.scrollTop<=.5 &&
-        wheelAccum>=DESKTOP_COMMIT &&
-        wheelEvents>=DESKTOP_MIN_EVENTS &&
-        duration>=DESKTOP_MIN_DURATION;
+    removeActiveTouchMove();
+    touchSession=null;
 
-      wheelTimer=null;
-      wheelAccum=0;
-      wheelEvents=0;
-      wheelStartedAt=0;
+    if(shouldReturn) navigateToIndex({fromGesture:true});
+    else clearReturnPull();
+  },{passive:true});
 
-      if(shouldReturn) navigateToIndex({fromGesture:true});
-      else clearReturnPull();
-    },WHEEL_SETTLE_MS);
-  },{passive:false});
+  projectScroll.addEventListener("touchcancel",()=>{
+    if(!touchSession) return;
+    endTouchSession();
+  },{passive:true});
 
   const initialIndex=projectIndexFromHash();
   if(initialIndex>=0){
