@@ -1,0 +1,68 @@
+name: WSS portable HTML checks
+on:
+  push:
+    branches: [feat/wss-editorial-content]
+    paths: [wss/**, '*.js', '*.css', index.html, .github/workflows/wss-portable.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  portable:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          pip install playwright==1.57.0 Pillow
+          python -m playwright install --with-deps chromium
+          command -v ffmpeg || { sudo apt-get update && sudo apt-get install -y ffmpeg; }
+      - name: Build an isolated fixture-media portable copy
+        run: |
+          python wss/tests/make_fixtures.py /tmp/wss-portable-source
+          python /tmp/wss-portable-source/wss/tools/build_preview.py /tmp/wss-portable.html
+      - name: Check genuine file URL behavior and remote frame
+        run: |
+          mkdir -p /tmp/wss-portable-report
+          python - <<'PY'
+          import asyncio,json
+          from pathlib import Path
+          from playwright.async_api import async_playwright
+          async def run():
+              records=[];complete=False
+              async with async_playwright() as p:
+                  browser=await p.chromium.launch()
+                  try:
+                      for width,height in [(1440,960),(390,844)]:
+                          page=await browser.new_page(viewport={'width':width,'height':height},reduced_motion='reduce')
+                          errors=[]
+                          page.on('pageerror',lambda error:errors.append(str(error)))
+                          await page.goto(Path('/tmp/wss-portable.html').as_uri())
+                          await page.wait_for_function('state === "opened"')
+                          assert await page.locator('.wss-story').count()==1
+                          assert await page.locator('video').count()==3
+                          await page.locator('.wss-chapter-links [data-jump="wss-interaction"]').click()
+                          await page.locator('[data-web-open]').click()
+                          await page.frame_locator('.wss-live iframe').locator('#start-btn:not(.pointer-events-none)').wait_for(timeout=45000)
+                          await page.locator('[data-web-stop]').click()
+                          assert await page.locator('iframe').count()==0
+                          await page.locator('.wss-bar [data-return]').click()
+                          await page.wait_for_function('state === "index"')
+                          assert await page.locator('video,iframe').count()==0
+                          assert not errors,errors
+                          records.append({'viewport':[width,height],'file_entry':'PASS','real_original_app_entry':'PASS','return_cleanup':'PASS','errors':errors})
+                          await page.close()
+                      complete=True
+                  finally:
+                      await browser.close()
+                      Path('/tmp/wss-portable-report/report.json').write_text(json.dumps({'completed':complete,'mode':'genuine file:// navigation','portfolio_media':'labelled synthetic fixtures, not visual review','original_app':'real deployed WSS2','results':records},indent=2))
+          asyncio.run(run())
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wss-portable-report
+          path: /tmp/wss-portable-report
+          retention-days: 14
