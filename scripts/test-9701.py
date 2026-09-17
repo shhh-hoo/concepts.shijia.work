@@ -3,6 +3,7 @@ import functools
 import http.server
 import json
 import pathlib
+import re
 import threading
 from playwright.sync_api import sync_playwright, expect
 
@@ -121,14 +122,33 @@ with sync_playwright() as p:
             frame.locator('#session-start').wait_for(state='attached')
             page.locator('.atlas-current .atlas-enter').click()
             page.wait_for_selector('dialog.atlas-is-live:modal')
+            # Initial HTML already contains an enabled Start button. Wait for the
+            # real product's data-backed launcher, not just the attached node.
+            expect(frame.locator('#current-set-copy')).to_contain_text(re.compile(r'\d+ items'))
+            expect(frame.locator('#session-start')).to_be_enabled()
+            frame.locator('#mode-full').click()
+            expect(frame.locator('#mode-full')).to_have_attribute('data-active', 'true')
+            expect(frame.locator('#session-start')).to_have_text(re.compile(r'Start Full Dictation', re.I))
             frame.locator('#session-start').click()
             frame.locator('#practice-shell').wait_for(state='visible')
             frame.locator('#practice-shell textarea').first.fill('a deliberately incomplete answer')
             frame.locator('#check-blank').click()
-            frame.locator('#reveal-blank').click()
+            expect(frame.locator('.memorisation-feedback-card')).to_contain_text('Needs revision')
+            # A stuck item can replace Reveal with the product's explicit
+            # show-and-review action. Exercise the visible UI; never force a
+            # hidden control or patch the remote application's state.
+            reveal = frame.locator('#reveal-blank')
+            if reveal.is_visible():
+                reveal.click()
+                reveal_action = 'Reveal'
+            else:
+                frame.locator('#stuck-review-later').click()
+                reveal_action = 'Show me and review later'
+            expect(frame.locator('.memorisation-reveal')).to_be_visible()
+            expect(frame.locator('.memorisation-reveal')).not_to_have_text('')
             page.wait_for_timeout(300)
             page.screenshot(path=str(out/(label+'-practice-live.png')))
-            passed(label+'/real-practice-check-and-reveal')
+            passed(label+'/real-practice-check-and-reveal', reveal_action=reveal_action)
             page.locator('.atlas-is-live .atlas-leave').click()
             assert not errors,str(errors)
             passed(label+'/no-page-errors')
@@ -144,6 +164,13 @@ with sync_playwright() as p:
         except Exception as exc:
             report.append({'test':label+'/flow','result':'FAIL','error':str(exc),'page_errors':errors})
             page.screenshot(path=str(out/(label+'-failure.png')))
+            for n, child in enumerate(page.frames[1:]):
+                try:
+                    debug = child.evaluate('''() => ({url:location.href, text:document.body.innerText,
+                      controls:[...document.querySelectorAll('button')].filter(b=>/session-start|reveal-blank|stuck-review-later|check-blank|mode-full/.test(b.id)).map(b=>({id:b.id,text:b.innerText,hidden:b.hidden,display:getComputedStyle(b).display,disabled:b.disabled,inert:!!b.closest('[inert]'),state:b.parentElement.dataset}))})''')
+                    (out/(label+'-child-'+str(n)+'.json')).write_text(json.dumps(debug,indent=2))
+                except Exception:
+                    pass
         context.close()
     for width,height in [(320,568),(768,1024)]:
         page=browser.new_page(viewport={'width':width,'height':height},reduced_motion='reduce')
