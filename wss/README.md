@@ -1,29 +1,38 @@
-# WSS / WSS2 content page
+# WSS / WSS2 — composed content page, revision 2
 
-This is the integrated WSS content chapter, not a separate redesign of the original quiz application. The recovered design is preserved: WSS opening film and stage artwork; a prominent complete WSS2 teaser; main visual and real stage photograph; entrance and invitation film; game-in-use photograph and original-site link. HISNOW is intentionally excluded.
+This replaces the earlier media-stack layout with a project-specific editorial grid: a typographic WSS cover, its graphic-language spread, a dedicated complete WSS2 teaser, an artwork/entrance/stage spread, and the working original web experience beside instructions and event evidence. HISNOW is excluded.
 
-## Recovery checkpoint — 17 September 2026
+## Integration and ownership
 
-The source implementation and 28-check browser suite were recovered unchanged from the interrupted build. The original media and previous screenshots survived; derivative media had to be regenerated. The recovered implementation passed all 28 offline checks again with actual publication media. Offline checks use set_content and explicitly do not verify browser history.
+`content.js` renders the page and owns film lifecycle; `content.css` owns project-scoped layout. `live.js` embeds the original WSS2 landing/game URLs only on deliberate activation. It does not modify or simulate the application. An iframe is removed on close, project exit, or fully leaving its section when not expanded. Camera and microphone permission are denied; the original mouse/touch flow does not need them. The parent cannot intercept Escape while a cross-origin iframe has keyboard focus, so explicit Close controls remain above and below it.
 
-GitHub Actions separately runs the same suite over a genuine local HTTP server, with isolated, visibly labelled synthetic media for functional testing. Those fixtures are never publication assets and their screenshots are not design evidence. See the workflow run for its actual outcome; merely adding the workflow does not mean the HTTP checks passed.
+The current main mobile scan/intro/tap/dwell/pull-return implementation is integrated. Its controller still owns mobile entry and exit. Only WSS lifecycle hooks and inner-interaction Escape precedence are added to `mobile-v2.js`. `mobile-route.js` bridges WSS to native mobile browser history without replacing scan geometry or gesture behavior. The concurrent desktop WSS pull-transform fix is retained in `navigation.css`.
 
-## Publication status
+## Original web inspection
 
-The branch is not deployed. Do not merge or deploy source without provisioning wss/media. Actual images and videos are supplied in the companion complete-site and media packages. Their checksum manifest is generated alongside the derivatives. Source-only GitHub Actions artifacts do not contain the real media.
+Live workflow 35233598536 on 17 September 2026 captured the original application inside a restricted cross-origin iframe: entry, gathering sixteen cards, shuffle, selection, question, answer feedback and return. It also captured the mobile selection layout. No application code or question data were replaced. The idle web preview is a derivative of that real selection screenshot.
 
-No Cloudflare/R2 account credentials were available during recovery. No bucket was created, no originals were made public, and no hosting migration was performed. Existing wrangler.jsonc is retained. The largest derivative is under 14 MB, so R2 is optional rather than necessary to fit the Workers individual static asset limit.
+The application is an event interface, not a new single-question demo: users begin the ritual and collect sixteen cards before choosing a question. Both its original landing page and game are available in the page. Mobile activation expands the frame to the native viewport; an external-tab option remains available.
 
-For a local review, unpack the complete-site package and run `python3 -m http.server 8765` at its root. Open `http://localhost:8765/#wss`. For the existing Worker deployment, provision all media, verify checksums, then run `npx wrangler deploy` from that root with the intended Cloudflare account authenticated.
+## Media and publication gate
 
-An optional R2/CDN prefix can be set on the script element: `<script src="wss/content.js" data-media-base="https://YOUR-ASSET-HOST/wss/"></script>`. Retain the exact derivative filenames and verify image/video responses and seeking after publication.
+The companion complete-site package contains 23 real publication files totaling 23,704,788 bytes, including the existing 21 unchanged derivatives and two new actual-web screenshot derivatives. The repository stores their checksums, not the video/image binaries. Do not deploy a source-only Actions artifact or the CI fixture directory. Provision `wss/media/` from the companion bundle and run:
 
-## Verification and scope
+```sh
+python wss/tools/check_media.py
+```
 
-Run `python wss/tests/browser_checks.py --offline --root . --output /tmp/wss-qa` for real-media viewport, playback, cleanup and reduced-motion checks. Run the same script with `--base-url http://127.0.0.1:8765/` for actual Back/Forward, reload and route checks. Python Playwright 1.57.0 was used for the recovered suite.
+The original Drive assets remain untouched. WSS intro is the verified 8.6-second active segment; WSS2 teaser and signup film are complete. No R2 upload or production rollout is implied by this source change.
 
-Main does not yet contain the separate draft mobile-scan implementation in PR #3. This branch preserves main and does not overwrite or merge that work. Phone-width WSS content checks are not evidence that the separate mobile scan/tap/dwell branch was integration-tested. Reconcile and test that branch before a combined production rollout.
+## Reproducible review and tests
 
-## Media behaviour
+```sh
+python wss/tools/build_preview.py /tmp/WSS-WSS2-designed-preview.html
+CHROMIUM_PATH=/usr/bin/chromium python wss/tests/browser_checks.py --offline --root . --output /tmp/wss-real-media-qa
+python -m http.server 8765
+# In a second shell, with real media provisioned:
+python wss/tests/browser_checks.py --root . --base-url http://127.0.0.1:8765/ --live --output /tmp/wss-http-qa
+python wss/tests/pull_checks.py --root . --base-url http://127.0.0.1:8765/ --output /tmp/wss-pull.json
+```
 
-Videos start muted; sound is explicit. WSS's opening is trimmed to 8.6 seconds to remove the black tail. The complete WSS2 teaser is approximately 13 seconds and plays once when visible. The complete 49-second signup film is user-initiated. Secondary video sources are deferred; manual pause is respected; offscreen/closed players stop; closing removes sources and listeners. Reduced motion keeps static posters until explicit play.
+The portable review embeds all local films/images; the original iframe still requires an internet connection. Offline QA deliberately uses inlined content and omits real-origin history and remote-app claims. HTTP CI uses labelled synthetic *portfolio media* to exercise behavior, but `--live` operates the genuine deployed WSS2 website. CI screenshots containing fixture media are not visual-quality evidence. Visual review must use the actual-media screenshots, while workflow reports record which functional checks completed.

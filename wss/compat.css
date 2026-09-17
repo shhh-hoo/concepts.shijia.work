@@ -1,0 +1,6 @@
+/* Keep the mobile controller's pull gesture above the native WSS viewport reset. */
+@media(max-width:699px){
+ .return-pulling #projectWorld.wss-world{transform:translate3d(0,var(--return-pull,0px),0)!important}
+ .return-pulling.return-resetting #projectWorld.wss-world{transform:translate3d(0,0,0)!important}
+ .return-pulling.return-committing #projectWorld.wss-world{transform:translate3d(0,100dvh,0)!important}
+}

@@ -1,7 +1,7 @@
 {
   "originals_unchanged": true,
   "publication_media_in_companion_bundle": true,
-  "total_bytes": 23559818,
+  "total_bytes": 23704788,
   "files": {
     "wss-intro-poster-1600.webp": {"bytes": 22982, "sha256": "9e2ca8c23141272fd5a349efe895e1113d2dd7c0db1148da9ac8afbb3f15ed2e"},
     "wss-intro-poster-800.webp": {"bytes": 8616, "sha256": "a002a56b0005e37103c80d423a53398dbc908fe6d5f788ad7bdcefbbe571ae6f"},
@@ -23,6 +23,9 @@
     "wss2-stage-900.webp": {"bytes": 85312, "sha256": "465c805066c7089ec70605a657a8d82c5a3a0a028cb2a514b1c7cc07a881adb5"},
     "wss2-teaser-poster-1600.webp": {"bytes": 178738, "sha256": "8f4f856462bac967429300f5ccf0f5de4c11f9e63a76341d99ed7a01cca43b46"},
     "wss2-teaser-poster-800.webp": {"bytes": 72026, "sha256": "9d0ded7c19212782b5324c5e76059a852fb26f3d22eb8906ab67ee58516f2bd7"},
-    "wss2-teaser.mp4": {"bytes": 3747316, "sha256": "fdb75563ad3168e9a44699220b46cbc988470fe1bda33c0405d03830f80d12fd"}
-  }
+    "wss2-teaser.mp4": {"bytes": 3747316, "sha256": "fdb75563ad3168e9a44699220b46cbc988470fe1bda33c0405d03830f80d12fd"},
+    "wss2-web-1200.webp": {"bytes": 108950, "sha256": "dede739454e6e063f80ac343eebd61a073b80e2d90a0521aa6762e258e6dc1ba"},
+    "wss2-web-600.webp": {"bytes": 36020, "sha256": "2a84d5c8ba89a6570315bc6d89c14750a3d41a798a2c98269c0a313961aaae75"}
+  },
+  "web_capture": {"source": "Original deployed WSS2, card-selection state", "workflow_run": 35233598536, "date": "2026-09-17", "original_app_unchanged": true}
 }

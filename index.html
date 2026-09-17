@@ -3,29 +3,50 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>concept.shijia.work — redesigned diagonal frontpage</title>
+<title>Concepts — Shijia Hu</title>
 <link rel="stylesheet" href="styles.css" />
 <link rel="stylesheet" href="navigation.css" />
+<link rel="stylesheet" href="mobile-tokens.css" />
+<link rel="stylesheet" href="mobile.css" />
+<link rel="stylesheet" href="mobile-refine.css" />
+<link rel="stylesheet" href="mobile-return.css" />
 <link rel="stylesheet" href="wss/content.css" />
+<link rel="stylesheet" href="wss/compat.css" />
 </head>
 <body>
 <div class="viewport" id="viewport">
   <div class="scene" id="scene">
+
     <div class="project-world" id="projectWorld">
       <div class="project-scroll" id="projectScroll"></div>
     </div>
+
     <main class="stage" id="stage" aria-label="Concept portfolio index"></main>
+
     <div class="scan-world" id="scanWorld">
       <div class="project-kicker" id="scanKicker"></div>
       <h1 class="project-title" id="scanTitle"></h1>
       <div class="project-statement" id="scanStatement"></div>
     </div>
+
     <button class="back" id="backBtn">↙ INDEX / ESC</button>
   </div>
 </div>
 <script src="data.js"></script>
+<script src="wss/live.js"></script>
 <script src="wss/content.js"></script>
 <script src="app.js"></script>
-<script src="navigation.js"></script>
+<script src="mobile-v2.js"></script>
+<script src="mobile-intro-stepped.js"></script>
+<script src="mobile-entry.js"></script>
+<script src="mobile-return.js"></script>
+<script src="wss/mobile-route.js"></script>
+<script>
+if(!window.matchMedia("(max-width:699px)").matches){
+  const navigationScript=document.createElement("script");
+  navigationScript.src="navigation.js";
+  document.body.appendChild(navigationScript);
+}
+</script>
 </body>
 </html>

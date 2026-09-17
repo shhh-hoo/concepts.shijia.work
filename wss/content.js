@@ -1,4 +1,4 @@
-/* WSS / WSS2: an asset-led content chapter, independent of the index geometry. */
+/* WSS / WSS2: an editorial composition, with an opt-in original web experience. */
 (() => {
   'use strict';
   const script = document.currentScript;
@@ -26,49 +26,45 @@
   function render(project) {
     return `<article class="wss-story" aria-labelledby="wss-title">
       <nav class="wss-bar" aria-label="WSS project navigation">
-        <span class="wss-bar-id">01 <span>/ LIVE QUIZ SHOW</span></span>
-        <div class="wss-chapter-links"><button type="button" data-jump="wss-edition-one" aria-current="true">WSS</button><span aria-hidden="true">/</span><button type="button" data-jump="wss-edition-two">WSS2</button></div>
+        <span class="wss-bar-id">01 <span>/ WSS · WSS2</span></span>
+        <div class="wss-chapter-links"><button type="button" data-jump="wss-edition-one" aria-current="true">I. WSS</button><button type="button" data-jump="wss-edition-two">II. WSS2</button><button type="button" data-jump="wss-interaction">III. PLAY</button></div>
         <button type="button" class="wss-return" data-return>INDEX <span aria-hidden="true">×</span></button>
       </nav>
-
-      <section class="wss-first" id="wss-edition-one" aria-labelledby="wss-title">
-        <header class="wss-opening wss-pad">
-          <div class="wss-opening-title"><p class="wss-eyebrow">WHO’S STILL STANDING?</p><h1 id="wss-title" tabindex="-1">WSS<span class="wss-edition-number">01</span></h1></div>
-          <div class="wss-opening-copy"><p>${esc(project.statement)}</p><span class="wss-micro">TWO EDITIONS. ONE QUESTION.</span></div>
+      <section id="wss-edition-one" class="wss-first" aria-labelledby="wss-title">
+        <header class="wss-cover wss-pad">
+          <div class="wss-cover-top"><span class="wss-eyebrow">A LIVE QUIZ COMPETITION</span><span class="wss-eyebrow">TWO EDITIONS / ONE QUESTION</span></div>
+          <div class="wss-cover-type"><h1 id="wss-title" tabindex="-1">WHO’S<br>STILL<br><span>STANDING?</span></h1><p class="wss-statement">${esc(project.statement.toUpperCase())}</p></div>
+          <div class="wss-cover-media"><div class="wss-edition-label"><strong>WSS</strong><span>THE FIRST EDITION<br>OPENING SEQUENCE</span></div>${film('wss-intro','01 / MOTION · 00:09','WSS opening film','loop')}<p class="wss-cover-note">Type sets the rhythm.<br> Colour sets the stage.</p></div>
+          <div class="wss-disciplines" aria-label="Project areas"><span>01 / VISUAL IDENTITY</span><span>02 / MOTION</span><span>03 / STAGECRAFT</span><button type="button" data-jump="wss-interaction">04 / INTERACTION <span aria-hidden="true">↗</span></button></div>
         </header>
-        ${film('wss-intro','I / THE OPENING · 00:09','WSS opening film','loop')}
-        <div class="wss-first-details wss-pad">
-          <div class="wss-section-heading"><span class="wss-eyebrow">THE FIRST EDITION</span><h2>Thoughts too loud.<br><em>Let it flow.</em></h2></div>
-          <figure class="wss-panorama">${image('wss-stage',1000,2400,6405,2666,'WSS stage artwork: magenta and electric-blue banners surrounding the central competition screen')}<figcaption><span>01 / THE STAGE, COMPOSED</span><span>STAGE ARTWORK</span></figcaption></figure>
-          <div class="wss-signup-row">
-            <div class="wss-short-copy"><span class="wss-eyebrow">BEFORE THE SHOW</span><p>A repeated invitation.<br>A shared visual language.<br>From the first poster<br>to the last question.</p></div>
-            <figure>${image('wss-signup',800,1514,1514,750,'The race is on: WSS signup poster with repeated Sign up Now typography','(max-width: 700px) 100vw, 64vw')}<figcaption><span>02 / THE INVITATION</span><span>SIGNUP POSTER</span></figcaption></figure>
-          </div>
+        <section class="wss-graphic wss-pad" aria-labelledby="wss-graphic-title">
+          <div class="wss-graphic-intro"><span class="wss-eyebrow">I / THE GRAPHIC LANGUAGE</span><h2 id="wss-graphic-title">Thoughts<br>too loud.<br><em>Let it flow.</em></h2><p>Repeated words, electric colour, a stage built around the question.</p></div>
+          <figure class="wss-panorama">${image('wss-stage',1000,2400,6405,2666,'WSS stage artwork: magenta and electric-blue banners surrounding the central competition screen','(max-width: 700px) 100vw, 65vw')}<figcaption><span>01 / A STAGE, COMPOSED</span><span>STAGE ARTWORK</span></figcaption></figure>
+          <figure class="wss-signup">${image('wss-signup',800,1514,1514,750,'WSS signup poster: The race is on, with repeated Sign up Now typography','(max-width: 700px) 100vw, 42vw')}<figcaption><span>02 / THE INVITATION</span><span>PRINT</span></figcaption></figure>
+          <div class="wss-graphic-note"><span class="wss-eyebrow">ONE IDENTITY, MULTIPLE SCALES</span><p>The same graphic language moves from an invitation to a screen, then across the stage.</p><div class="wss-colour-note" aria-label="Magenta, electric blue and black"><i></i><i></i><i></i></div></div>
+        </section>
+      </section>
+      <section class="wss-second" id="wss-edition-two" aria-labelledby="wss2-title">
+        <header class="wss-second-opening wss-pad">
+          <div class="wss-second-top"><span class="wss-eyebrow">II / A DIFFERENT WORLD</span><span class="wss-eyebrow">WHO’S STILL STANDING? — SECOND EDITION</span></div>
+          <div class="wss-second-type"><span class="wss-edition-word" id="wss2-title">WSS2</span><h2><span>GOOD</span><small>OR</small><em>WICKED?</em></h2><p>The same competition.<br>A new theatrical language.</p></div>
+          <div class="wss-teaser-compose">${film('wss2-teaser','03 / THE TEASER · 00:13','WSS2 Good or Wicked teaser','once')}<div class="wss-teaser-credit"><span>A FAMILIAR CREST.<br>AN UNFAMILIAR WORLD.</span><span>COMPLETE ORIGINAL FILM</span></div></div>
+        </header>
+        <section class="wss-world-spread wss-pad" aria-labelledby="wss-world-title">
+          <div class="wss-world-intro"><span class="wss-eyebrow">FROM VISUAL IDENTITY TO PHYSICAL SPACE</span><h3 id="wss-world-title">Not just<br>on screen.<br><em>In the room.</em></h3><p>Emerald machinery and pearl-pink light become a shared vocabulary for the artwork, the entrance and the stage.</p></div>
+          <figure class="wss-artwork">${image('wss2-artwork',800,1376,1376,768,'Good or Wicked artwork: emerald machinery opposite pearl-pink bubbles and a castle','(max-width: 700px) 100vw, 59vw')}<figcaption><span>04 / THE WORLD, IMAGINED</span><span>MAIN VISUAL</span></figcaption></figure>
+          <figure class="wss-door">${image('wss2-entrance',600,1200,3665,4886,'Illustrated green and pink entrance installed around the WSS2 doorway','(max-width: 700px) 43vw, 24vw')}<figcaption><span>05 / THE THRESHOLD</span><span>ENTRANCE</span></figcaption></figure>
+          <figure class="wss-room">${image('wss2-stage',900,2000,4032,3024,'WSS2 physical stage: the main visual, green-lit gears and transparent bubbles','(max-width: 700px) 100vw, 44vw')}<figcaption><span>06 / THE WORLD, BUILT</span><span>PHYSICAL STAGE</span></figcaption></figure>
+          <aside class="wss-world-notes"><div><span class="wss-eyebrow">THE SHOW STARTS<br>BEFORE THE FIRST QUESTION.</span><p>An invitation is not only information. It introduces the world you are about to enter.</p></div>${film('wss2-invitation','07 / INVITATION · 00:49','WSS2 signup film','','3 / 2')}</aside>
+        </section>
+      </section>
+      <section class="wss-interaction wss-pad" id="wss-interaction" aria-labelledby="wss-play-title">
+        <header class="wss-play-heading"><div><span class="wss-eyebrow">III / THE WORKING WEB EXPERIENCE</span><h2 id="wss-play-title">Now, take<br><em>your turn.</em></h2></div><p>The visual world becomes an interface.<br>Explore the original WSS2 website here—not a simulated demo.</p></header>
+        <div class="wss-play-layout"><aside class="wss-play-guide"><div class="wss-guide-heading">HOW TO PLAY <span>↘</span></div><ol><li><b>Begin the ritual.</b><span>Choose “开启魔法仪式” in the game.</span></li><li><b>Gather sixteen.</b><span>Drag the cards sideways. Select the card in the centre, sixteen times.</span></li><li><b>Pick. Answer. Reveal.</b><span>After the shuffle, choose a card and answer before time runs out.</span></li></ol><figure class="wss-game-evidence">${image('wss2-game',900,2000,3433,2289,'A participant reaching for a card on the WSS2 display at the event','(max-width: 700px) 40vw, 20vw')}<figcaption><span>THE SAME INTERFACE,<br>AT EVENT SCALE.</span></figcaption></figure></aside>
+          ${window.WSSLive.render(media, image)}
         </div>
       </section>
-
-      <section class="wss-second" id="wss-edition-two" aria-labelledby="wss2-title">
-        <header class="wss-chapter-heading wss-pad"><div><p class="wss-eyebrow">II / THE SECOND EDITION</p><h2 id="wss2-title">WSS2</h2></div><p>A different world.<br><em>The same question.</em></p></header>
-        ${film('wss2-teaser','II / THE TEASER · 00:13','WSS2 Good or Wicked teaser','once')}
-        <div class="wss-teaser-note wss-pad"><p>A familiar crest.<br>An unfamiliar world.</p><span class="wss-micro">GOOD / WICKED</span></div>
-
-        <section class="wss-world-building wss-pad" aria-labelledby="wss-world-title">
-          <div class="wss-world-heading"><span class="wss-eyebrow">A WORLD, BEYOND THE SCREEN</span><h3 id="wss-world-title">From image<br><em>to room.</em></h3></div>
-          <figure class="wss-artwork">${image('wss2-artwork',800,1376,1376,768,'Good or Wicked main artwork: emerald machinery and a yellow road opposite pearl-pink bubbles and a castle','(max-width: 700px) 100vw, 68vw')}<figcaption><span>03 / THE WORLD ON SCREEN</span><span>MAIN VISUAL</span></figcaption></figure>
-          <figure class="wss-room">${image('wss2-stage',900,2000,4032,3024,'The WSS2 stage with the main visual on screen, green-lit gears to the left and transparent bubbles to the right','(max-width: 700px) 100vw, 80vw')}<figcaption><span>04 / THE WORLD ON STAGE</span><span>THE PHYSICAL SETTING</span></figcaption></figure>
-        </section>
-
-        <section class="wss-invitation wss-pad" aria-labelledby="wss-invitation-title">
-          <figure class="wss-door">${image('wss2-entrance',600,1200,3665,4886,'The WSS2 entrance, an illustrated green and pink arch installed around the doorway','(max-width: 700px) 100vw, 36vw')}<figcaption><span>05 / CROSSING THE THRESHOLD</span><span>ENTRANCE</span></figcaption></figure>
-          <div class="wss-invitation-right"><div class="wss-invitation-heading"><span class="wss-eyebrow">THE INVITATION BECOMES A PLACE</span><h3 id="wss-invitation-title">Before the<br><em>first question.</em></h3></div>${film('wss2-invitation','06 / THE INVITATION · 00:49','WSS2 signup film','','3 / 2')}</div>
-        </section>
-
-        <section class="wss-in-play" aria-labelledby="wss-play-title">
-          <div class="wss-play-heading wss-pad"><div><span class="wss-eyebrow">THE INTERACTION</span><h3 id="wss-play-title">The game,<br><em>in the room.</em></h3></div><a class="wss-open-live" href="https://shhh-hoo.github.io/WSS2/wss2.html" target="_blank" rel="noopener noreferrer">OPEN ORIGINAL WSS2 <span aria-hidden="true">↗</span><small>THE INTERACTIVE WEBSITE</small></a></div>
-          <figure>${image('wss2-game',900,2000,3433,2289,'A participant reaching toward an illustrated question card on the large WSS2 display')}<figcaption class="wss-pad"><span>07 / A CARD. A QUESTION. A LIVE MOMENT.</span><span>WSS2 IN USE</span></figcaption></figure>
-        </section>
-      </section>
-      <footer class="wss-end wss-pad"><p>Questions. Identity.<br>Stagecraft. Interaction.</p><div><span class="wss-eyebrow">WSS / WSS2</span><button type="button" data-return>BACK TO CONCEPTS <span aria-hidden="true">↙</span></button></div></footer>
+      <footer class="wss-end wss-pad"><div><span class="wss-eyebrow">WSS / WSS2</span><p>One question.<br><em>An entire show.</em></p></div><button type="button" data-return>BACK TO CONCEPTS <span aria-hidden="true">↙</span></button></footer>
     </article>`;
   }
 
@@ -77,6 +73,7 @@
     const old = mounted;
     mounted = null;
     old.ready = false;
+    old.live?.destroy();
     old.abort.abort();
     old.filmsObserver.disconnect();
     old.chaptersObserver.disconnect();
@@ -91,6 +88,7 @@
     old.article.remove();
     old.root.removeAttribute('aria-label');
     old.root.removeAttribute('tabindex');
+    document.dispatchEvent(new CustomEvent('wss:closed'));
   }
 
   function mount(enabled, root) {
@@ -163,7 +161,7 @@
       });
     }
     function reconsider() {
-      if (!ctx.ready || document.hidden) return;
+      if (!ctx.ready || document.hidden || ctx.live?.active) return;
       const candidates = [...ctx.videos].filter(([v, info]) => v.dataset.autoplay && info.ratio >= .45 && !info.userPaused && !info.done);
       if (reduced.matches || connection?.saveData) return;
       candidates.sort((a, b) => b[1].ratio - a[1].ratio);
@@ -225,6 +223,8 @@
       }, { signal });
     }
 
+    ctx.live = window.WSSLive.mount(article, root, () => pauseOthers(null), signal);
+
     ctx.chaptersObserver = new IntersectionObserver(entries => {
       for (const entry of entries) if (entry.isIntersecting) {
         for (const button of article.querySelectorAll('[data-jump]')) {
@@ -233,11 +233,11 @@
         }
       }
     }, { root, rootMargin: '-60px 0px -70% 0px', threshold: 0 });
-    for (const id of ['wss-edition-one', 'wss-edition-two']) ctx.chaptersObserver.observe(article.querySelector(`#${id}`));
+    for (const id of ['wss-edition-one', 'wss-edition-two', 'wss-interaction']) ctx.chaptersObserver.observe(article.querySelector(`#${id}`));
 
     article.addEventListener('click', event => {
       const back = event.target.closest('[data-return]');
-      if (back) { event.preventDefault(); window.closeProject(); return; }
+      if (back) { event.preventDefault(); document.getElementById('backBtn').click(); return; }
       const jump = event.target.closest('[data-jump]');
       if (jump) {
         const target = article.querySelector(`#${jump.dataset.jump}`);
@@ -262,11 +262,17 @@
     mounted.ready = true;
     mounted.article.querySelector('h1').focus({ preventScroll: true });
     mounted.reconsider();
+    document.dispatchEvent(new CustomEvent('wss:opened'));
   }
   function pause() {
     if (!mounted) return;
     mounted.ready = false;
+    mounted.live?.close(false);
     for (const [video, info] of mounted.videos) { info.systemPause = true; video.pause(); }
   }
-  window.WSSContent = { render, mount, activate, pause, destroy };
+  function closeInteraction() {
+    if (!mounted?.live?.active && !mounted?.live?.expanded) return false;
+    mounted.live.close(); return true;
+  }
+  window.WSSContent = { render, mount, activate, pause, destroy, closeInteraction };
 })();
