@@ -21,11 +21,14 @@ async def run(args):
                 frame=page.frame_locator('iframe')
                 await frame.locator('#enterBtn').wait_for(timeout=45000)
                 assert await page.locator('iframe').get_attribute('src')=='https://shhh-hoo.github.io/WSS2/'
-                await frame.locator('#enterBtn').click()
+                if label=='desktop':
+                    await frame.locator('#enterBtn').click()
+                else:
+                    await page.locator('[data-live-game]').click()
                 await frame.locator('#start-btn').wait_for(timeout=45000)
                 child=[f for f in page.frames if f.parent_frame is not None][0]
                 assert child.url.endswith('/WSS2/wss2.html'), child.url
-                checks.append(label+': downloaded file opens original WSS2 root, then reaches the real game in the same iframe')
+                checks.append(label+': downloaded file opens original WSS2 root; desktop uses native Enter and phone uses the explicit game fallback in the same iframe')
                 await page.locator('[data-live-stop]').click()
                 await page.locator('.wss-bar [data-return]').click()
                 await page.wait_for_function('state==="index"')
