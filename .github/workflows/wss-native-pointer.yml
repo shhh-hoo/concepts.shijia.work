@@ -1,0 +1,33 @@
+name: WSS original app native-pointer rendering
+on:
+  push:
+    branches: [feat/wss-showbook-v3]
+    paths: [wss/tests/native_pointer_probe.py, .github/workflows/wss-native-pointer.yml]
+permissions:
+  contents: read
+jobs:
+  view:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Dependencies
+        run: |
+          pip install playwright==1.57.0 Pillow
+          python -m playwright install --with-deps chromium
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Render actual visible click path
+        run: |
+          python wss/tests/make_fixtures.py /tmp/native-site
+          python -m http.server 8765 --bind 127.0.0.1 --directory /tmp/native-site > /tmp/native-server.log 2>&1 &
+          sleep 1
+          python wss/tests/native_pointer_probe.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wss-native-pointer-evidence
+          path: /tmp/showbook-native
+          retention-days: 14
