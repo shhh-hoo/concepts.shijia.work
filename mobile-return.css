@@ -21,11 +21,11 @@
     opacity:0;
     transition:transform 180ms var(--ease),opacity 150ms ease!important;
   }
+}
 
-  @media (prefers-reduced-motion:reduce){
-    .return-pulling.return-resetting #projectWorld,
-    .return-pulling.return-committing #projectWorld{
-      transition-duration:1ms!important;
-    }
+@media (max-width:699px) and (prefers-reduced-motion:reduce){
+  .return-pulling.return-resetting #projectWorld,
+  .return-pulling.return-committing #projectWorld{
+    transition-duration:1ms!important;
   }
 }
