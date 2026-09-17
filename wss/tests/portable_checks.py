@@ -18,8 +18,12 @@ async def run(args):
                 assert await page.locator('[data-design="showbook-v3"]').count()==1
                 await page.locator('.wss-bar [data-jump="wss-live"]').click()
                 await page.locator('[data-live-start]').click()
-                await page.frame_locator('iframe').locator('#start-btn:not(.pointer-events-none)').wait_for(timeout=45000)
-                checks.append(label+': downloaded file auto-opens the new design and loads the real iframe')
+                frame=page.frame_locator('iframe')
+                await frame.locator('#enterBtn').wait_for(timeout=45000)
+                assert await page.locator('iframe').get_attribute('src')=='https://shhh-hoo.github.io/WSS2/'
+                await frame.locator('#enterBtn').click()
+                await frame.locator('#start-btn:not(.pointer-events-none)').wait_for(timeout=45000)
+                checks.append(label+': downloaded file opens original WSS2 root, then navigates into the real game in-frame')
                 await page.locator('[data-live-stop]').click()
                 await page.locator('.wss-bar [data-return]').click()
                 await page.wait_for_function('state==="index"')
@@ -31,7 +35,7 @@ async def run(args):
             complete=True
         finally:
             await browser.close()
-            (out/'report.json').write_text(json.dumps({'completed':complete,'count':len(checks),'checks':checks,'format':'inlined publication format; CI parent-media fixtures, real HTTPS WSS2'},indent=2))
+            (out/'report.json').write_text(json.dumps({'completed':complete,'count':len(checks),'checks':checks,'format':'inlined publication format; CI parent-media fixtures, real HTTPS WSS2 root-to-game flow'},indent=2))
             html.unlink(missing_ok=True)
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--root',default='.');p.add_argument('--output',default='/tmp/showbook-portable');asyncio.run(run(p.parse_args()))
