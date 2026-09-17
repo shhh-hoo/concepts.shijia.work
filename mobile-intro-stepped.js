@@ -4,63 +4,34 @@
 
   const BAND=108;
   const START_Y=BAND/2;
+  const INTRO_READ_DISTANCE=180;
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   const smooth=t=>t*t*(3-2*t);
   const lerp=(a,b,t)=>a+(b-a)*t;
   const workScanY=()=>Math.min(292,Math.max(250,window.innerHeight*.34));
-  const introReadDistance=()=>Math.min(180,Math.max(150,window.innerHeight*.19));
   let frame=0;
 
   const steps=[0,.21,.405,.595,.79,1];
 
-  function ensureProjectsTrack(){
-    let track=document.getElementById("mobileProjectsTrack");
-    if(track) return track;
+  function alignFirstProjectStart(){
+    const firstSection=stage.querySelector(':scope > .mobile-project[data-project="0"]')
+      || stage.querySelector('.mobile-project[data-project="0"]');
+    if(!firstSection) return;
 
-    const sections=[...stage.querySelectorAll(":scope > .mobile-project")];
-    if(!sections.length) return null;
-
-    track=document.createElement("div");
-    track.id="mobileProjectsTrack";
-    track.className="mobile-projects-track";
-    track.style.position="relative";
-    track.style.width="100%";
-    track.style.willChange="transform";
-
-    stage.insertBefore(track,sections[0]);
-    sections.forEach(section=>track.appendChild(section));
-    return track;
-  }
-
-  function layoutProjectHandoff(){
-    const track=ensureProjectsTrack();
-    const firstSection=track?.querySelector('.mobile-project[data-project="0"]');
-    const firstIndex=firstSection?.querySelector('.mobile-project-index');
-    if(!track || !firstSection || !firstIndex) return;
-
-    const readDistance=introReadDistance();
-    track.style.paddingBottom=`${readDistance}px`;
-
-    // Measure the ribbon in normal document flow. During the intro we will
-    // counter-scroll this entire ribbon, so 01 can simply live at the scan's
-    // final working position instead of being pushed down by readDistance.
-    const previousTransform=track.style.transform;
-    track.style.transform="none";
+    // The whole first project must START at the handoff, not merely place its
+    // "01" label there. At the exact scroll position where the intro read ends:
+    //
+    //   firstProject.getBoundingClientRect().top === workScanY()
+    //
+    // so mobile-v2 computes project scan progress as 0 and the complete WSS
+    // project world can subsequently pass through the fixed scan.
+    firstSection.style.marginTop="0px";
     firstSection.style.paddingTop="12px";
 
-    const sectionTop=firstSection.getBoundingClientRect().top+window.scrollY;
-    const targetIndexCenter=workScanY();
-    const targetPadding=targetIndexCenter-sectionTop-firstIndex.offsetHeight/2;
-    firstSection.style.paddingTop=`${Math.max(12,targetPadding)}px`;
-
-    track.style.transform=previousTransform;
-  }
-
-  function updateProjectTrack(){
-    const track=ensureProjectsTrack();
-    if(!track) return;
-    const hold=Math.min(window.scrollY,introReadDistance());
-    track.style.transform=`translate3d(0,${hold}px,0)`;
+    const naturalSectionTop=firstSection.getBoundingClientRect().top+window.scrollY;
+    const targetDocumentTop=INTRO_READ_DISTANCE+workScanY();
+    const requiredMargin=Math.max(0,targetDocumentTop-naturalSectionTop);
+    firstSection.style.marginTop=`${requiredMargin}px`;
   }
 
   function applyClip(scanY){
@@ -115,10 +86,7 @@
 
   function renderSteppedIntro(){
     frame=0;
-    updateProjectTrack();
-
-    const readDistance=introReadDistance();
-    if(window.scrollY>readDistance) return;
+    if(window.scrollY>INTRO_READ_DISTANCE) return;
 
     const scanWorld=document.getElementById("scanWorld");
     const scene=document.getElementById("scene");
@@ -126,7 +94,7 @@
     const line=document.getElementById("mobileMagnifiedLine");
     if(!scanWorld || !scene || !magnifier || !line) return;
 
-    const progress=clamp(window.scrollY/readDistance,0,1);
+    const progress=clamp(window.scrollY/INTRO_READ_DISTANCE,0,1);
     const scanY=lerp(START_Y,workScanY(),smooth(progress));
     const index=stepIndex(progress);
 
@@ -149,20 +117,16 @@
     frame=requestAnimationFrame(renderSteppedIntro);
   }
 
-  ensureProjectsTrack();
-  layoutProjectHandoff();
-  updateProjectTrack();
+  alignFirstProjectStart();
 
   window.addEventListener("scroll",schedule,{passive:true});
   window.addEventListener("resize",()=>{
-    layoutProjectHandoff();
-    updateProjectTrack();
+    alignFirstProjectStart();
     schedule();
   },{passive:true});
 
   requestAnimationFrame(()=>{
-    layoutProjectHandoff();
-    updateProjectTrack();
+    alignFirstProjectStart();
     renderSteppedIntro();
   });
 })();
