@@ -13,6 +13,23 @@
 
   const steps=[0,.21,.405,.595,.79,1];
 
+  function alignFirstProjectToHandoff(){
+    const firstSection=document.querySelector('#stage .mobile-project[data-project="0"]');
+    const firstIndex=firstSection?.querySelector('.mobile-project-index');
+    if(!firstSection || !firstIndex) return;
+
+    // Project 01 is not spaced by an arbitrary section gap. Its marker is
+    // anchored to the interaction handoff: when the intro read completes,
+    // the centre of "01" arrives exactly at the scan's fixed working centre.
+    firstSection.style.paddingTop="12px";
+
+    const sectionTop=firstSection.getBoundingClientRect().top+window.scrollY;
+    const targetIndexCenter=introReadDistance()+workScanY();
+    const targetPadding=targetIndexCenter-sectionTop-firstIndex.offsetHeight/2;
+
+    firstSection.style.paddingTop=`${Math.max(12,targetPadding)}px`;
+  }
+
   function applyClip(scanY){
     const scanWorld=document.getElementById("scanWorld");
     if(!scanWorld) return;
@@ -95,7 +112,14 @@
     frame=requestAnimationFrame(renderSteppedIntro);
   }
 
+  alignFirstProjectToHandoff();
   window.addEventListener("scroll",schedule,{passive:true});
-  window.addEventListener("resize",schedule,{passive:true});
-  requestAnimationFrame(renderSteppedIntro);
+  window.addEventListener("resize",()=>{
+    alignFirstProjectToHandoff();
+    schedule();
+  },{passive:true});
+  requestAnimationFrame(()=>{
+    alignFirstProjectToHandoff();
+    renderSteppedIntro();
+  });
 })();
