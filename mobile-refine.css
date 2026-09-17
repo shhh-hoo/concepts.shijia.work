@@ -1,0 +1,52 @@
+@media (max-width:699px){
+  /* Content-led opening with a moderate intro → 01 interval. */
+  .stage{padding-bottom:0!important}
+  .mobile-intro{
+    min-height:0!important;
+    padding:18px 14px 48px!important;
+  }
+  .mobile-project{
+    padding-top:12px!important;
+  }
+
+  /* Intro scan: reversed optical readout, project scan remains unchanged. */
+  .scan-world.intro-magnifier,
+  .scan-world[data-slug="intro"]{
+    background:#000!important;
+    color:#fff!important;
+  }
+  .mobile-intro-magnifier{
+    display:none!important;
+    position:absolute!important;
+    inset:0!important;
+    width:100%!important;
+    height:100dvh!important;
+    padding:0!important;
+    background:#000!important;
+    color:#fff!important;
+    z-index:7!important;
+    pointer-events:none!important;
+    overflow:hidden!important;
+  }
+  .scan-world.intro-magnifier .mobile-intro-magnifier{
+    display:block!important;
+  }
+  .mobile-magnified-line{
+    position:absolute;
+    width:max-content;
+    margin:0;
+    color:#fff;
+    font-weight:400;
+    line-height:1.05;
+    letter-spacing:-.035em;
+    text-transform:uppercase;
+    white-space:nowrap;
+    will-change:left,top,font-size;
+  }
+  .scan-world.intro-magnifier .mobile-scan-decor,
+  .scan-world.intro-magnifier .project-kicker,
+  .scan-world.intro-magnifier .project-title,
+  .scan-world.intro-magnifier .project-statement{
+    display:none!important;
+  }
+}

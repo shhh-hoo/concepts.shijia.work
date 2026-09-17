@@ -1,0 +1,8 @@
+@media (max-width:699px){
+  :root{
+    --home-1:#d8c4e3;--home-2:#e8ccda;--home-3:#f3c99a;
+    --as-1:#8bc0ad;--as-2:#b7d19b;--as-3:#ecd98e;
+    --a2-1:#f08475;--a2-2:#f4af7e;--a2-3:#ead27f;
+    --interactive-1:#8ebee3;--interactive-2:#9fcad2;--interactive-3:#a8c0a2;
+  }
+}
