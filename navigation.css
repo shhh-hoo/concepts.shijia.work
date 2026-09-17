@@ -28,3 +28,11 @@
     transition-duration:1ms;
   }
 }
+
+/* WSS cancels the index's fixed-canvas scale. Keep that transform while
+   applying the existing pull distance in scene coordinates (screen px / scale).
+   The extra class specificity prevents content.css from swallowing the pull. */
+.return-pulling #projectWorld.wss-world {
+  transform: translate3d(0,var(--return-pull,0px),0)
+             translate(-50%,-50%) scale(var(--wss-unscale,1));
+}
