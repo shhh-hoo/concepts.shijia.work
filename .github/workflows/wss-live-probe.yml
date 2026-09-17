@@ -2,7 +2,7 @@ name: WSS2 live integration evidence
 on:
   push:
     branches: [feat/wss-editorial-content]
-    paths: ['.github/workflows/wss-live-probe.yml', 'wss/live.js', 'wss/content.js', 'wss/content.css']
+    paths: ['.github/workflows/wss-live-probe.yml', 'wss/**', 'index.html']
   workflow_dispatch:
 permissions:
   contents: read
@@ -15,85 +15,22 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: |
-          pip install playwright==1.57.0
-          python -m playwright install --with-deps chromium
-      - name: Capture original source and deployed browser flow
+      - name: Browser and media dependencies
         run: |
-          mkdir -p /tmp/wss-live-evidence
-          curl -fsSL https://codeload.github.com/shhh-hoo/concepts.shijia.work/zip/refs/heads/main -o /tmp/wss-live-evidence/current-main.zip
-          python - <<'PY'
-          import asyncio, json, threading, urllib.request
-          from pathlib import Path
-          from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-          from playwright.async_api import async_playwright
-          out=Path('/tmp/wss-live-evidence')
-          url='https://shhh-hoo.github.io/WSS2/wss2.html'
-          response=urllib.request.urlopen(url)
-          report={'url':url,'http_status':response.status,'headers':dict(response.headers),'steps':[]}
-          (out/'deployed-wss2.html').write_bytes(response.read())
-          (out/'embed.html').write_text('<!doctype html><html><style>body{margin:0;background:#10261f}iframe{display:block;border:0;width:100vw;height:90vh}</style><iframe src="'+url+'" title="Original WSS2" sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock" allow="fullscreen; camera \'none\'; microphone \'none\'"></iframe></html>')
-          class Handler(SimpleHTTPRequestHandler):
-              def __init__(self,*a,**k): super().__init__(*a,directory=str(out),**k)
-          server=ThreadingHTTPServer(('127.0.0.1',8766),Handler)
-          threading.Thread(target=server.serve_forever,daemon=True).start()
-          async def run():
-              async with async_playwright() as p:
-                  browser=await p.chromium.launch()
-                  page=await browser.new_page(viewport={'width':1200,'height':900})
-                  errors=[]
-                  page.on('pageerror',lambda e:errors.append(str(e)))
-                  await page.goto('http://127.0.0.1:8766/embed.html')
-                  frame=page.frame_locator('iframe')
-                  async def snap(name):
-                      await page.locator('iframe').screenshot(path=str(out/(name+'.png')))
-                      text=await frame.locator('body').inner_text()
-                      report['steps'].append({'name':name,'text':text[:1600]})
-                      (out/'report.json').write_text(json.dumps(report,indent=2))
-                  await frame.locator('#start-btn:not(.pointer-events-none)').wait_for(timeout=45000)
-                  await snap('01-original-entry')
-                  await frame.locator('#start-btn').click()
-                  await frame.locator('#view-gathering.active, #view-selection.active').wait_for(timeout=15000)
-                  await snap('02-original-gathering')
-                  for i in range(16):
-                      if await frame.locator('#view-gathering.active').count()==0: break
-                      carousel=frame.locator('#gatherCarousel')
-                      index=await carousel.evaluate('''el=>{const items=[...el.querySelectorAll('.carousel-item')];const c=el.scrollLeft+el.clientWidth/2;let best=0;items.forEach((x,i)=>{if(Math.abs(x.offsetLeft+x.offsetWidth/2-c)<Math.abs(items[best].offsetLeft+items[best].offsetWidth/2-c))best=i});el.scrollLeft=items[best].offsetLeft+items[best].offsetWidth/2-el.clientWidth/2;return best}''')
-                      await carousel.locator('.arched-card').nth(index).click()
-                      await page.wait_for_timeout(1150)
-                  await frame.locator('#view-selection.active').wait_for(timeout=15000)
-                  await snap('03-original-selection')
-                  carousel=frame.locator('#selectCarousel')
-                  index=await carousel.evaluate('''el=>{const items=[...el.querySelectorAll('.carousel-item')];const c=el.scrollLeft+el.clientWidth/2;let best=0;items.forEach((x,i)=>{if(Math.abs(x.offsetLeft+x.offsetWidth/2-c)<Math.abs(items[best].offsetLeft+items[best].offsetWidth/2-c))best=i});el.scrollLeft=items[best].offsetLeft+items[best].offsetWidth/2-el.clientWidth/2;return best}''')
-                  await carousel.locator('.arched-card').nth(index).click()
-                  await frame.locator('#view-quiz.active').wait_for(timeout=10000)
-                  await snap('04-original-question')
-                  await frame.locator('#quiz-options button').first.click()
-                  await page.wait_for_timeout(800)
-                  await snap('05-original-feedback')
-                  await frame.locator('[data-action="backToSelection"]').click()
-                  await frame.locator('#view-selection.active').wait_for()
-                  report['round_completed']=True
-                  report['camera_required']=False
-                  await page.set_viewport_size({'width':390,'height':844})
-                  await page.wait_for_timeout(500)
-                  await snap('06-original-mobile')
-                  report['mobile_overflow']=await frame.locator('body').evaluate('(b)=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,height:innerHeight,scrollHeight:document.documentElement.scrollHeight})')
-                  await page.locator('iframe').evaluate('(el)=>el.remove()')
-                  report['removed_frame_count']=len(page.frames)
-                  report['errors']=errors
-                  await browser.close()
-          try: asyncio.run(run())
-          except Exception as exc:
-              report['error']=str(exc)
-              raise
-          finally:
-              (out/'report.json').write_text(json.dumps(report,indent=2))
-              server.shutdown()
-          PY
+          pip install playwright==1.57.0 Pillow
+          python -m playwright install --with-deps chromium
+          command -v ffmpeg || { sudo apt-get update && sudo apt-get install -y ffmpeg; }
+      - name: Serve the integrated page with labelled surrounding test media
+        run: |
+          python wss/tests/make_fixtures.py /tmp/wss-live-site
+          python -m http.server 8765 --bind 127.0.0.1 --directory /tmp/wss-live-site > /tmp/wss-live-server.log 2>&1 &
+          for attempt in $(seq 1 20); do curl -fsS http://127.0.0.1:8765/ > /dev/null && break || sleep 1; done
+          python wss/tests/showbook_checks.py --root /tmp/wss-live-site --base-url http://127.0.0.1:8765/ --live --output /tmp/wss-integrated-live
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: wss-live-evidence
-          path: /tmp/wss-live-evidence
+          name: wss-integrated-real-app-evidence
+          path: |
+            /tmp/wss-integrated-live
+            /tmp/wss-live-server.log
           retention-days: 14

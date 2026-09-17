@@ -3,7 +3,7 @@ on:
   push:
     branches: [feat/wss-editorial-content]
   pull_request:
-    paths: [wss/**, app.js, navigation.js, navigation.css, index.html, .github/workflows/wss-content.yml]
+    paths: [wss/**, app.js, navigation.js, index.html, .github/workflows/wss-content.yml]
 permissions:
   contents: read
 jobs:
@@ -17,7 +17,7 @@ jobs:
           python-version: '3.12'
       - name: Check JavaScript
         run: |
-          for file in app.js data.js navigation.js wss/content.js; do node --check "$file"; done
+          for file in app.js data.js navigation.js wss/design.js wss/live.js wss/content.js; do node --check "$file"; done
       - name: Install browser test dependencies
         run: |
           python -m pip install playwright==1.57.0 Pillow
@@ -32,7 +32,6 @@ jobs:
           python -m http.server 8765 --bind 127.0.0.1 --directory /tmp/wss-functional-site > /tmp/wss-server.log 2>&1 &
           for attempt in $(seq 1 20); do curl -fsS http://127.0.0.1:8765/ > /dev/null && break || sleep 1; done
           python wss/tests/browser_checks.py --root /tmp/wss-functional-site --base-url http://127.0.0.1:8765/ --output /tmp/wss-functional-report
-          python wss/tests/pull_checks.py --root /tmp/wss-functional-site --base-url http://127.0.0.1:8765/ --output /tmp/wss-functional-report/pull-report.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:

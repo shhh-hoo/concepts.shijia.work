@@ -1,0 +1,50 @@
+name: WSS showbook structural redesign
+on:
+  push:
+    branches: [feat/wss-showbook-v3]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Dependencies and syntax
+        run: |
+          for f in app.js data.js navigation.js wss/content.js wss/design.js wss/live.js; do node --check "$f"; done
+          pip install playwright==1.57.0 Pillow
+          python -m playwright install --with-deps chromium
+          command -v ffmpeg || { sudo apt-get update && sudo apt-get install -y ffmpeg; }
+      - name: Original app inside the integrated showbook; real HTTP history
+        env:
+          WSS_TEST_MEDIA: labelled synthetic portfolio media; the embedded WSS2 app is the real HTTPS original
+        run: |
+          python wss/tests/make_fixtures.py /tmp/wss-showbook-site
+          python -m http.server 8765 --bind 127.0.0.1 --directory /tmp/wss-showbook-site > /tmp/wss-server.log 2>&1 &
+          for n in $(seq 1 20); do curl -fsS http://127.0.0.1:8765/ > /dev/null && break || sleep 1; done
+          python wss/tests/browser_checks.py --root /tmp/wss-showbook-site --base-url http://127.0.0.1:8765/ --output /tmp/showbook-evidence/core
+          python wss/tests/showbook_checks.py --root /tmp/wss-showbook-site --base-url http://127.0.0.1:8765/ --live --output /tmp/showbook-evidence/live
+      - name: Preserve exact tested source (not publication media)
+        if: always()
+        run: |
+          mkdir -p /tmp/showbook-source
+          tar --exclude=.git --exclude=.github -cf /tmp/showbook-source/site.tar .
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: showbook-v3-source
+          path: /tmp/showbook-source/site.tar
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: showbook-v3-real-app-and-http-evidence
+          path: |
+            /tmp/showbook-evidence
+            /tmp/wss-server.log
+          retention-days: 14
