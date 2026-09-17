@@ -1,0 +1,39 @@
+name: 9701 preview
+on:
+  push:
+    branches: [feat/9701-live-atlas]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          path: concepts
+      - uses: actions/checkout@v4
+        with:
+          repository: shhh-hoo/student-site
+          ref: bb75ae2dd7d349b1472188e538010109374c3c48
+          persist-credentials: false
+          path: student
+      - name: Package original sources and check scripts
+        shell: bash
+        run: |
+          mkdir -p preview
+          cp -R concepts preview/concepts
+          cp -R student preview/student
+          rm -rf preview/concepts/.git preview/student/.git
+          find concepts -maxdepth 1 -name '*.js' -exec node --check {} \;
+          if [ -f concepts/scripts/build-9701-preview.mjs ]; then
+            node concepts/scripts/build-9701-preview.mjs student preview/concepts
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 9701-preview
+          path: preview/
+          retention-days: 7
+          if-no-files-found: error
