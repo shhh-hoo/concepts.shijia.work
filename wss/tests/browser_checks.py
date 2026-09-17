@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 import re
 
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, expect
 
 
 def inline_site(root: Path, *, offline: bool = False) -> str:
@@ -43,6 +43,7 @@ async def run(args):
     output = Path(args.output).resolve()
     output.mkdir(parents=True, exist_ok=True)
     records = []
+    completed = False
     html = inline_site(root, offline=True) if args.offline else None
     def passed(name):
         print('PASS', name, flush=True)
@@ -96,7 +97,7 @@ async def run(args):
                 assert await intro.evaluate('(v)=>v.paused')
                 await page.locator('[data-jump="wss-edition-two"]').click()
                 await page.wait_for_timeout(1100)
-                assert await page.locator('[data-jump="wss-edition-two"]').get_attribute('aria-current') == 'true'
+                await expect(page.locator('[data-jump="wss-edition-two"]')).to_have_attribute('aria-current', 'true')
                 await teaser.scroll_into_view_if_needed()
                 await page.wait_for_function('!document.querySelector("[data-film=wss2-teaser] video").paused')
                 assert await intro.evaluate('(v)=>v.paused')
@@ -107,11 +108,12 @@ async def run(args):
                     passed(f'{label}: chapter scrolling does not add a new route')
                 await page.locator('[data-film="wss2-teaser"] [data-sound]').click()
                 assert await teaser.evaluate('(v)=>!v.muted')
-                assert await page.locator('[data-film="wss2-teaser"] [data-sound]').get_attribute('aria-pressed') == 'true'
+                # volumechange is queued by the browser; the label updates on that event.
+                await expect(page.locator('[data-film="wss2-teaser"] [data-sound]')).to_have_attribute('aria-pressed', 'true')
                 passed(f'{label}: explicit sound control updates playback and accessible state')
                 await teaser.evaluate('(v)=>{v.currentTime=v.duration-.12}')
                 await page.wait_for_function('document.querySelector("[data-film=wss2-teaser] video").ended')
-                assert await page.locator('[data-film="wss2-teaser"] [data-toggle]').inner_text() == 'REPLAY FILM'
+                await expect(page.locator('[data-film="wss2-teaser"] [data-toggle]')).to_have_text('REPLAY FILM')
                 await page.locator('[data-film="wss2-teaser"] [data-toggle]').click()
                 assert await teaser.evaluate('(v)=>!v.paused && v.currentTime<2')
                 passed(f'{label}: teaser ends once and can replay')
@@ -193,10 +195,12 @@ async def run(args):
                 await page.wait_for_function('state === "index"')
                 passed('HTTP: direct #wss reload and index return')
                 await page.close()
+            completed = True
         finally:
             await browser.close()
             report = {'mode': 'offline actual publication media' if args.offline else 'HTTP browser',
-                      'real_origin_history_tested': not args.offline,
+                      'completed': completed,
+                      'real_origin_history_tested': any(record['check'].startswith('HTTP: real browser Back') for record in records),
                       'media': 'actual publication bundle' if args.offline else os.environ.get('WSS_TEST_MEDIA','local publication files'),
                       'checks': records, 'count': len(records)}
             (output / 'report.json').write_text(json.dumps(report, indent=2))
