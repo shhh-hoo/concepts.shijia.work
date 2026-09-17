@@ -4,7 +4,13 @@
   if(!mobileQuery.matches) return;
 
   const BAND=108;
-  const scanCenterY=()=>Math.min(292,Math.max(220,window.innerHeight*.34));
+  const topScanY=()=>Math.min(96,Math.max(76,window.innerHeight*.10));
+  const workScanY=()=>Math.min(292,Math.max(250,window.innerHeight*.34));
+  const bottomReleaseDistance=()=>Math.min(240,Math.max(160,window.innerHeight*.24));
+  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+  const smooth=t=>t*t*(3-2*t);
+  const lerp=(a,b,t)=>a+(b-a)*t;
+
   let lastScanProject=null;
   let scrollFrame=0;
   let savedScrollY=0;
@@ -65,10 +71,21 @@
     content.className="mobile-scan-content";
     content.id="mobileScanContent";
 
+    const magnifier=document.createElement("div");
+    magnifier.className="mobile-intro-magnifier";
+    magnifier.id="mobileIntroMagnifier";
+    intro.forEach(([text])=>{
+      const line=document.createElement("div");
+      line.className="mobile-intro-line";
+      line.textContent=text;
+      magnifier.appendChild(line);
+    });
+
     const decor=document.createElement("div");
     decor.className="mobile-scan-decor";
     decor.id="mobileScanDecor";
 
+    content.appendChild(magnifier);
     content.appendChild(decor);
     content.appendChild(scanKicker);
     content.appendChild(scanTitle);
@@ -104,6 +121,7 @@
 
   function setMobileScanIdentity(i){
     const p=projects[i];
+    scanWorld.classList.remove("intro-magnifier");
     setScanStyle(i);
     scanWorld.dataset.slug=p.slug;
     document.getElementById("mobileScanDecor").innerHTML=scanDecor(p.slug);
@@ -116,10 +134,58 @@
     else scanWorld.style.background="#faf8f4";
   }
 
+  function scanPosition(){
+    const top=topScanY();
+    const work=workScanY();
+    const first=stage.querySelector(".mobile-project");
+    const handoffScroll=first ? Math.max(1,first.offsetTop-work) : 1;
+    const entry=smooth(clamp(window.scrollY/handoffScroll,0,1));
+    let y=lerp(top,work,entry);
+
+    if(entry>=1){
+      const doc=document.documentElement;
+      const maxScroll=Math.max(0,doc.scrollHeight-window.innerHeight);
+      const remaining=Math.max(0,maxScroll-window.scrollY);
+      const release=bottomReleaseDistance();
+      const releaseProgress=smooth(clamp((release-remaining)/release,0,1));
+      const bottom=Math.min(window.innerHeight-BAND/2-24,work+70);
+      y=lerp(work,bottom,releaseProgress);
+    }
+
+    return y;
+  }
+
+  function applyScanClip(scanY){
+    const viewportH=window.innerHeight;
+    const top=Math.max(0,scanY-BAND/2);
+    const bottom=Math.max(0,viewportH-scanY-BAND/2);
+    scanWorld.style.clipPath=`inset(${top}px 0px ${bottom}px 0px)`;
+    document.documentElement.style.setProperty("--mobile-scan-y",`${scanY}px`);
+  }
+
+  function showIntroMagnifier(scanY,introRect){
+    active=null;
+    lastScanProject=null;
+    scanWorld.dataset.slug="intro";
+    scanWorld.classList.add("intro-magnifier");
+    scanWorld.style.background="#fff";
+
+    const content=document.getElementById("mobileScanContent");
+    const magnifier=document.getElementById("mobileIntroMagnifier");
+    content.style.transform="none";
+    magnifier.style.top=`${introRect.top}px`;
+    magnifier.style.transformOrigin=`50% ${scanY-introRect.top}px`;
+    magnifier.style.transform="scale(1.14)";
+
+    applyScanClip(scanY);
+    scanWorld.classList.add("show");
+    scene.classList.remove("mobile-scan-active");
+  }
+
   function hideMobileScan(){
     active=null;
     lastScanProject=null;
-    scanWorld.classList.remove("show");
+    scanWorld.classList.remove("show","intro-magnifier");
     scene.classList.remove("mobile-scan-active");
   }
 
@@ -130,7 +196,9 @@
       return;
     }
 
-    const scanY=scanCenterY();
+    const scanY=scanPosition();
+    const introBlock=stage.querySelector(".mobile-intro");
+    const introRect=introBlock?.getBoundingClientRect();
     const sections=[...stage.querySelectorAll(".mobile-project")];
     let match=null;
 
@@ -143,26 +211,28 @@
     }
 
     if(!match){
-      hideMobileScan();
+      if(introRect && introRect.top<=scanY && introRect.bottom>=scanY){
+        showIntroMagnifier(scanY,introRect);
+      }else{
+        hideMobileScan();
+      }
       return;
     }
 
     const {rect,i}=match;
     active=i;
-    if(lastScanProject!==i){
+    if(lastScanProject!==i || scanWorld.classList.contains("intro-magnifier")){
       setMobileScanIdentity(i);
       lastScanProject=i;
     }
 
-    const progress=Math.max(0,Math.min(1,(scanY-rect.top)/rect.height));
+    const progress=clamp((scanY-rect.top)/rect.height,0,1);
     const viewportH=window.innerHeight;
     const sampleY=BAND/2+progress*Math.max(1,viewportH-BAND);
     const translateY=scanY-sampleY;
-    const top=Math.max(0,scanY-BAND/2);
-    const bottom=Math.max(0,viewportH-scanY-BAND/2);
 
     document.getElementById("mobileScanContent").style.transform=`translate3d(0,${translateY}px,0)`;
-    scanWorld.style.clipPath=`inset(${top}px 0px ${bottom}px 0px)`;
+    applyScanClip(scanY);
     scanWorld.classList.add("show");
     scene.classList.add("mobile-scan-active");
   }
