@@ -1,0 +1,28 @@
+{
+  "originals_unchanged": true,
+  "publication_media_in_companion_bundle": true,
+  "total_bytes": 23559818,
+  "files": {
+    "wss-intro-poster-1600.webp": {"bytes": 22982, "sha256": "9e2ca8c23141272fd5a349efe895e1113d2dd7c0db1148da9ac8afbb3f15ed2e"},
+    "wss-intro-poster-800.webp": {"bytes": 8616, "sha256": "a002a56b0005e37103c80d423a53398dbc908fe6d5f788ad7bdcefbbe571ae6f"},
+    "wss-intro.mp4": {"bytes": 3273572, "sha256": "a988fa27bbb88d8d46b3308411b28ac387423f6bedb95aa067ec30244f51ba93"},
+    "wss-signup-1514.webp": {"bytes": 77694, "sha256": "f4d56ec887069d51d42e2c6217a36d5d3c205ccee16b57a6525c663f35a73357"},
+    "wss-signup-800.webp": {"bytes": 40014, "sha256": "1f9ff2295c5ed0c58e5d272960839a3e3eef8cb15b8661994632f72f5cd418a1"},
+    "wss-stage-1000.webp": {"bytes": 52166, "sha256": "966b0f42888f4319bbb1284ffd26efee91541f8e68c1728e46b784bf57f73f6a"},
+    "wss-stage-2400.webp": {"bytes": 182082, "sha256": "1e2b45b4fca7ff5db81c79233e74d2b6ccbb04d9815a18d521be69822f669afe"},
+    "wss2-artwork-1376.webp": {"bytes": 265690, "sha256": "1fd1e05699e90a599109bbe6fc926754a10b970d275dbc3b39ce249eb316d0b2"},
+    "wss2-artwork-800.webp": {"bytes": 114068, "sha256": "518718bda613d7f6d4e1db5f6996471acf078d805c2e5093fdb8bb29102437bf"},
+    "wss2-entrance-1200.webp": {"bytes": 481984, "sha256": "80b51c38403fe8c2ca69f558cd099d62a3bfdd03184220f3f31026e05d73f08e"},
+    "wss2-entrance-600.webp": {"bytes": 137084, "sha256": "1f0f176086ce1b699a3479010234124c6c88ce844fba5355944f14dfc84af2ff"},
+    "wss2-game-2000.webp": {"bytes": 246846, "sha256": "4570de851ee1e31d9a7010e53f08cc1de7c6a65ddd41ae9a64a85b3bd1e1a7f3"},
+    "wss2-game-900.webp": {"bytes": 83814, "sha256": "fbc4baebe283c5e1f884667006fe70506ceb3bdc3590b93b9f8277d90745e34f"},
+    "wss2-invitation-poster-1600.webp": {"bytes": 203412, "sha256": "0294dbb6b54a5636c3b5c693e66f1942ead48882de1021ec6b43801dca50dd98"},
+    "wss2-invitation-poster-800.webp": {"bytes": 95638, "sha256": "39ae784113e3a56a3c5f048e20946711798ee17782d8578cd507c9720ae7f147"},
+    "wss2-invitation.mp4": {"bytes": 13857188, "sha256": "6d14dbc7d7975389006198ace31c5df2d22e3faf44eeae8b1790cfcf05938bfc"},
+    "wss2-stage-2000.webp": {"bytes": 333576, "sha256": "a5f4af015d3a8371f5f9bb254be401302717c49871352e3ff92482f93923c553"},
+    "wss2-stage-900.webp": {"bytes": 85312, "sha256": "465c805066c7089ec70605a657a8d82c5a3a0a028cb2a514b1c7cc07a881adb5"},
+    "wss2-teaser-poster-1600.webp": {"bytes": 178738, "sha256": "8f4f856462bac967429300f5ccf0f5de4c11f9e63a76341d99ed7a01cca43b46"},
+    "wss2-teaser-poster-800.webp": {"bytes": 72026, "sha256": "9d0ded7c19212782b5324c5e76059a852fb26f3d22eb8906ab67ee58516f2bd7"},
+    "wss2-teaser.mp4": {"bytes": 3747316, "sha256": "fdb75563ad3168e9a44699220b46cbc988470fe1bda33c0405d03830f80d12fd"}
+  }
+}
