@@ -13,21 +13,54 @@
 
   const steps=[0,.21,.405,.595,.79,1];
 
-  function alignFirstProjectToHandoff(){
-    const firstSection=document.querySelector('#stage .mobile-project[data-project="0"]');
-    const firstIndex=firstSection?.querySelector('.mobile-project-index');
-    if(!firstSection || !firstIndex) return;
+  function ensureProjectsTrack(){
+    let track=document.getElementById("mobileProjectsTrack");
+    if(track) return track;
 
-    // Project 01 is not spaced by an arbitrary section gap. Its marker is
-    // anchored to the interaction handoff: when the intro read completes,
-    // the centre of "01" arrives exactly at the scan's fixed working centre.
+    const sections=[...stage.querySelectorAll(":scope > .mobile-project")];
+    if(!sections.length) return null;
+
+    track=document.createElement("div");
+    track.id="mobileProjectsTrack";
+    track.className="mobile-projects-track";
+    track.style.position="relative";
+    track.style.width="100%";
+    track.style.willChange="transform";
+
+    stage.insertBefore(track,sections[0]);
+    sections.forEach(section=>track.appendChild(section));
+    return track;
+  }
+
+  function layoutProjectHandoff(){
+    const track=ensureProjectsTrack();
+    const firstSection=track?.querySelector('.mobile-project[data-project="0"]');
+    const firstIndex=firstSection?.querySelector('.mobile-project-index');
+    if(!track || !firstSection || !firstIndex) return;
+
+    const readDistance=introReadDistance();
+    track.style.paddingBottom=`${readDistance}px`;
+
+    // Measure the ribbon in normal document flow. During the intro we will
+    // counter-scroll this entire ribbon, so 01 can simply live at the scan's
+    // final working position instead of being pushed down by readDistance.
+    const previousTransform=track.style.transform;
+    track.style.transform="none";
     firstSection.style.paddingTop="12px";
 
     const sectionTop=firstSection.getBoundingClientRect().top+window.scrollY;
-    const targetIndexCenter=introReadDistance()+workScanY();
+    const targetIndexCenter=workScanY();
     const targetPadding=targetIndexCenter-sectionTop-firstIndex.offsetHeight/2;
-
     firstSection.style.paddingTop=`${Math.max(12,targetPadding)}px`;
+
+    track.style.transform=previousTransform;
+  }
+
+  function updateProjectTrack(){
+    const track=ensureProjectsTrack();
+    if(!track) return;
+    const hold=Math.min(window.scrollY,introReadDistance());
+    track.style.transform=`translate3d(0,${hold}px,0)`;
   }
 
   function applyClip(scanY){
@@ -70,8 +103,10 @@
     }
 
     const height=line.getBoundingClientRect().height;
-    const sourceLeft=source?.getBoundingClientRect().left ?? 14;
-    const desiredLeft=sourceLeft-(width-(source?.getBoundingClientRect().width ?? width))/2;
+    const sourceRect=source?.getBoundingClientRect();
+    const sourceLeft=sourceRect?.left ?? 14;
+    const sourceWidth=sourceRect?.width ?? width;
+    const desiredLeft=sourceLeft-(width-sourceWidth)/2;
     const left=clamp(desiredLeft,12,Math.max(12,window.innerWidth-width-12));
 
     line.style.left=`${left}px`;
@@ -80,6 +115,8 @@
 
   function renderSteppedIntro(){
     frame=0;
+    updateProjectTrack();
+
     const readDistance=introReadDistance();
     if(window.scrollY>readDistance) return;
 
@@ -112,14 +149,20 @@
     frame=requestAnimationFrame(renderSteppedIntro);
   }
 
-  alignFirstProjectToHandoff();
+  ensureProjectsTrack();
+  layoutProjectHandoff();
+  updateProjectTrack();
+
   window.addEventListener("scroll",schedule,{passive:true});
   window.addEventListener("resize",()=>{
-    alignFirstProjectToHandoff();
+    layoutProjectHandoff();
+    updateProjectTrack();
     schedule();
   },{passive:true});
+
   requestAnimationFrame(()=>{
-    alignFirstProjectToHandoff();
+    layoutProjectHandoff();
+    updateProjectTrack();
     renderSteppedIntro();
   });
 })();
