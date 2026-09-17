@@ -86,7 +86,17 @@
 
   function renderSteppedIntro(){
     frame=0;
-    if(window.scrollY>INTRO_READ_DISTANCE) return;
+
+    // The exact handoff boundary belongs to Project 01, not the intro.
+    // mobile-v2 activates the WSS scan and mobile-scan-active at this point;
+    // do not run afterward and clear its tap ownership.
+    if(window.scrollY>=INTRO_READ_DISTANCE){
+      const scanWorld=document.getElementById("scanWorld");
+      if(scanWorld?.dataset.slug==="intro"){
+        scanWorld.classList.remove("intro-magnifier");
+      }
+      return;
+    }
 
     const scanWorld=document.getElementById("scanWorld");
     const scene=document.getElementById("scene");
