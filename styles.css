@@ -73,6 +73,21 @@ button{font:inherit;color:inherit}
 .project-world.visible{opacity:1}
 .opened .project-world{pointer-events:auto}
 
+.construction-notice{
+  position:absolute;
+  top:18px;right:18px;
+  z-index:75;
+  padding:8px 10px 7px;
+  border:1px solid #000;
+  background:#fff;
+  color:#000;
+  font-size:10px;
+  line-height:1;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  pointer-events:none;
+}
+
 .project-scroll{
   position:absolute;
   inset:0;
