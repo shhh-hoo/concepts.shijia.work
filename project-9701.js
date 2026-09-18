@@ -42,11 +42,55 @@
     const portalRoot = root.querySelector('.atlas-portals');
     const caption = root.querySelector('.atlas-caption');
     const picker = root.querySelector('.atlas-route-picker');
+    const cover = root.querySelector('.atlas-cover');
+    const finish = root.querySelector('.atlas-finish');
+    const scrollCue = root.querySelector('.atlas-scroll-cue');
+    const progressBar = root.querySelector('.atlas-progress span');
+    const chapterButtons = [...root.querySelectorAll('[data-chapter]')];
+    const routeButtons = [...root.querySelectorAll('[data-route]')];
     const frames = new Map();
     let width = 0, height = 0, mobile = false, frameRequest = 0, chapter = -1;
     let route = 'home', currentKey = '', live = null, stopped = false;
-    let savedScroll = 0, savedFocus = null, everOpened = false;
+    let savedScroll = 0, savedFocus = null, everOpened = false, cueText = '';
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+
+    function configureSource(record) {
+      if (!record || !width) return;
+      const nativeWidth = mobile ? Math.max(340, width - 24) : 1440;
+      if (record.sourceWidth === nativeWidth) return;
+      record.sourceWidth = nativeWidth;
+      record.sourceHeight = 1150;
+      for (const el of [record.iframe, record.loading]) {
+        el.style.width = nativeWidth + 'px';
+        el.style.height = record.sourceHeight + 'px';
+      }
+    }
+
+    function retireInactiveFrames(keepKey) {
+      if (live || stopped) return;
+      for (const [key, record] of [...frames]) {
+        if (key === keepKey) continue;
+        record.dialog.remove();
+        frames.delete(key);
+      }
+    }
+
+    function applyPortalGeometry(record, x, y, w, h, cut) {
+      configureSource(record);
+      const px = x * width, py = y * height, pw = w * width, ph = h * height;
+      const scale = pw / record.sourceWidth;
+      const cutX = px + pw * cut / 100;
+      const cutY = py + ph * cut / 100;
+      const clip = `polygon(${cutX}px ${py}px,${px + pw}px ${py}px,${px + pw}px ${py + ph}px,${px}px ${py + ph}px,${px}px ${cutY}px)`;
+      const sourceTransform = `translate3d(${px}px,${py}px,0) scale(${scale})`;
+      record.viewport.style.clipPath = clip;
+      record.enter.style.clipPath = clip;
+      record.iframe.style.transform = sourceTransform;
+      record.loading.style.transform = sourceTransform;
+      record.enterLabel.style.transform = `translate3d(${px + pw - 22}px,${py + ph - 22}px,0) translate(-100%,-100%)`;
+      record.portalCaption.style.transform = `translate3d(${px}px,${py + ph + 15}px,0)`;
+      record.portalCaption.style.width = pw + 'px';
+    }
 
     function makePortal(key) {
       if (frames.has(key)) return frames.get(key);
@@ -66,7 +110,18 @@
         <div class="atlas-viewport"><div class="atlas-loading"><span>9701</span><p>Opening ${source.label.toLowerCase()}…</p></div><iframe title="${source.name}" tabindex="-1" inert referrerpolicy="strict-origin-when-cross-origin"></iframe><button type="button" class="atlas-enter" aria-label="${source.action}"><span>${source.action} <b aria-hidden="true">↗</b></span></button></div>
         <div class="atlas-portal-caption"><span>${source.label}</span><span>THE REAL, RUNNING PRODUCT ↗</span></div>`;
       const iframe = dialog.querySelector('iframe');
-      const record = { dialog, iframe, touched: false };
+      const record = {
+        dialog,
+        iframe,
+        viewport: dialog.querySelector('.atlas-viewport'),
+        loading: dialog.querySelector('.atlas-loading'),
+        enter: dialog.querySelector('.atlas-enter'),
+        enterLabel: dialog.querySelector('.atlas-enter > span'),
+        portalCaption: dialog.querySelector('.atlas-portal-caption'),
+        touched: false,
+        sourceWidth: 0,
+        sourceHeight: 1150
+      };
       frames.set(key, record);
       portalRoot.append(dialog);
       // Remote document, not a DOM replica. No cross-origin DOM access.
@@ -74,8 +129,11 @@
       iframe.addEventListener('load', () => {
         // This event is NOT a success assertion. External links remain available.
         dialog.classList.add('atlas-load-ended');
+        setTimeout(() => {
+          if (!stopped && !live && currentKey === key) retireInactiveFrames(key);
+        }, 700);
       }, opts);
-      dialog.querySelector('.atlas-enter').addEventListener('click', () => enter(record), opts);
+      record.enter.addEventListener('click', () => enter(record), opts);
       dialog.querySelector('.atlas-leave').addEventListener('click', leave, opts);
       dialog.addEventListener('cancel', e => { e.preventDefault(); leave(); }, opts);
       return record;
@@ -141,7 +199,7 @@
         caption.querySelector('.atlas-chapter-number').textContent = `0${chapter + 1}`;
         caption.querySelector('h2').textContent = chapters[chapter];
         caption.querySelector('p').textContent = descriptions[chapter];
-        root.querySelectorAll('[data-chapter]').forEach(b => {
+        chapterButtons.forEach(b => {
           if (Number(b.dataset.chapter) === chapter) b.setAttribute('aria-current', 'step');
           else b.removeAttribute('aria-current');
         });
@@ -154,25 +212,20 @@
       }
       const [x,y,w,h,cut] = rectangle(p);
       const record = frames.get(currentKey);
-      const nativeWidth = mobile ? Math.max(340, width - 24) : 1440;
-      const scale = width * w / nativeWidth;
-      Object.entries({
-        '--portal-x':`${x*width}px`,'--portal-y':`${y*height}px`,
-        '--portal-w':`${w*width}px`,'--portal-h':`${h*height}px`,
-        '--source-w':`${nativeWidth}px`,'--source-h':`${Math.max(1150,h*height/scale)}px`,
-        '--source-scale':`${scale}`,'--cut':`${cut}%`
-      }).forEach(([name,value]) => record.dialog.style.setProperty(name,value));
+      applyPortalGeometry(record, x, y, w, h, cut);
       const coverOpacity = 1-clamp(p/.63);
       const finishOpacity = clamp((p-4.40)/.40);
-      root.style.setProperty('--cover-opacity',coverOpacity);
-      root.style.setProperty('--caption-opacity',Math.min(clamp((p-.4)/.3),1-finishOpacity));
-      root.style.setProperty('--finish-opacity',finishOpacity);
-      root.style.setProperty('--progress',p/5);
-      root.style.setProperty('--cover-shift',`${-p*(mobile?25:65)}px`);
-      root.querySelector('.atlas-cover').inert=coverOpacity<.1;
-      root.querySelector('.atlas-finish').inert=finishOpacity<.9;
-      picker.hidden=chapter!==0||p<.6;
-      root.querySelector('.atlas-scroll-cue').textContent=p>4.5?'END OF EXHIBITION':'SCROLL TO UNFOLD ↓';
+      cover.style.opacity = String(coverOpacity);
+      cover.style.transform = `translate3d(0,${-p*(mobile?25:65)}px,0)`;
+      caption.style.opacity = String(Math.min(clamp((p-.4)/.3),1-finishOpacity));
+      finish.style.opacity = String(finishOpacity);
+      progressBar.style.transform = `scaleX(${p/5})`;
+      cover.inert=coverOpacity<.1;
+      finish.inert=finishOpacity<.9;
+      const hidePicker=chapter!==0||p<.6;
+      if (picker.hidden !== hidePicker) picker.hidden=hidePicker;
+      const nextCue=p>4.5?'END OF EXHIBITION':'SCROLL TO UNFOLD ↓';
+      if (nextCue !== cueText) { cueText = nextCue; scrollCue.textContent = nextCue; }
     }
     function requestUpdate(){if(!frameRequest&&!stopped)frameRequest=requestAnimationFrame(update);}
     function resize(){
@@ -182,16 +235,17 @@
       root.style.setProperty('--atlas-h',`${height}px`);
       root.style.setProperty('--atlas-w',`${width}px`);
       root.style.setProperty('--track-length',mobile?5:6);
+      frames.forEach(configureSource);
       requestUpdate();
     }
     host.addEventListener('scroll',requestUpdate,{...opts,passive:true});
-    root.querySelectorAll('[data-chapter]').forEach(button=>button.addEventListener('click',()=>{
+    chapterButtons.forEach(button=>button.addEventListener('click',()=>{
       const p=[.95,2.15,3.85][Number(button.dataset.chapter)];
       host.scrollTo({top:p*height/(mobile?1.25:1),behavior:reduced.matches?'instant':'smooth'});
     },opts));
-    root.querySelectorAll('[data-route]').forEach(button=>button.addEventListener('click',()=>{
+    routeButtons.forEach(button=>button.addEventListener('click',()=>{
       route=button.dataset.route;
-      root.querySelectorAll('[data-route]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+      routeButtons.forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
       requestUpdate();
     },opts));
     root.querySelector('.atlas-exit').addEventListener('click',onExit,opts);
