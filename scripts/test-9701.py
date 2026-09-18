@@ -40,9 +40,13 @@ with sync_playwright() as p:
             page.screenshot(path=str(out/(label+'-cover.png')))
             if label=='mobile':
                 intro=page.locator('.atlas-intro').bounding_box()
-                aperture=page.locator('.atlas-current .atlas-viewport').bounding_box()
-                assert intro['y']+intro['height']<aperture['y']
-                passed('mobile/cover-copy-not-obscured')
+                aperture_top=page.locator('.atlas-current .atlas-viewport').evaluate("""el => {
+                  const clip=getComputedStyle(el).clipPath;
+                  const points=[...clip.matchAll(/(-?\\d+(?:\\.\\d+)?)px\\s+(-?\\d+(?:\\.\\d+)?)px/g)];
+                  return Math.min(...points.map(match=>Number(match[2])));
+                }""")
+                assert intro['y']+intro['height']<aperture_top
+                passed('mobile/cover-copy-not-obscured',aperture_top=aperture_top)
             for key,position in [('organise',.95),('connect',2.15),('rehearse',3.85),('finish',5)]:
                 pose(page,position)
                 selector='#diagramSvg' if key=='connect' else '#session-setup' if key in ['rehearse','finish'] else '#homepage-hero-title'
