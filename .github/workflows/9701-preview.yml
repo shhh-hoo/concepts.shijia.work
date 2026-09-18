@@ -43,6 +43,8 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Capture original product and production headers
         run: python concepts/scripts/inspect-9701.py
+      - name: Profile exhibition scroll performance
+        run: python concepts/scripts/profile-9701.py
       - name: Test the exhibition, live product and navigation
         run: python concepts/scripts/test-9701.py
       - uses: actions/upload-artifact@v4
