@@ -1,0 +1,58 @@
+name: 9701 preview
+on:
+  push:
+    branches: [feat/9701-live-atlas]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: 9701-preview-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          path: concepts
+      - uses: actions/checkout@v4
+        with:
+          repository: shhh-hoo/student-site
+          ref: bb75ae2dd7d349b1472188e538010109374c3c48
+          persist-credentials: false
+          path: student
+      - name: Package preview and check JavaScript syntax
+        run: |
+          mkdir -p preview
+          cp -R concepts preview/concepts
+          rm -rf preview/concepts/.git
+          find concepts -maxdepth 1 -name '*.js' -exec node --check {} \;
+          python - <<'PY'
+          from pathlib import Path
+          src=Path('concepts')
+          html=(src/'9701.html').read_text()
+          html=html.replace('<link rel="stylesheet" href="project-9701.css">','<style>'+(src/'project-9701.css').read_text()+'</style>')
+          html=html.replace('<script src="project-9701.js"></script>','<script>'+(src/'project-9701.js').read_text()+'</script>')
+          Path('preview/9701-live-exhibition.html').write_text(html)
+          PY
+      - name: Install browser verifier
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Capture original product and production headers
+        run: python concepts/scripts/inspect-9701.py
+      - name: Profile exhibition scroll performance
+        run: python concepts/scripts/profile-9701.py
+      - name: Test the exhibition, live product and navigation
+        run: python concepts/scripts/test-9701.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: 9701-preview
+          path: |
+            preview/
+            evidence/
+          retention-days: 7
+          if-no-files-found: error
