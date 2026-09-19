@@ -18,6 +18,8 @@
     old.world.classList.remove('wss-world');
     old.scene.classList.remove('wss-scene');
     old.world.style.removeProperty('--wss-unscale');
+    old.world.style.removeProperty('--wss-offset-x');
+    old.world.style.removeProperty('--wss-offset-y');
     old.article.remove();
     old.root.removeAttribute('aria-label');
     old.root.removeAttribute('tabindex');
@@ -43,6 +45,15 @@
       const transform = getComputedStyle(scene).transform;
       const scale = transform === 'none' ? 1 : Math.abs(new DOMMatrixReadOnly(transform).a);
       world.style.setProperty('--wss-unscale', String(1 / Math.max(.01, scale)));
+      world.style.setProperty('--wss-offset-x', '0px');
+      world.style.setProperty('--wss-offset-y', '0px');
+      // The portfolio index is a fixed 1536×1024 canvas letterboxed into the
+      // browser viewport. Measure the resulting WSS viewport after cancelling
+      // that scale, then compensate in scene coordinates rather than relying
+      // on transform-order assumptions.
+      const worldRect = world.getBoundingClientRect();
+      world.style.setProperty('--wss-offset-x', (-worldRect.left / Math.max(.01, scale)) + 'px');
+      world.style.setProperty('--wss-offset-y', (-worldRect.top / Math.max(.01, scale)) + 'px');
       if (scene.classList.contains('opened')) {
         const ux = 700 / Math.hypot(700, 1000), uy = -1000 / Math.hypot(700, 1000);
         const travel = Math.max(Math.hypot(700, 1000) * 1.48,
@@ -55,6 +66,64 @@
       }
     }
     fitContent();
+    const reveal = article.querySelector('[data-wss-reveal]');
+    if (reveal) {
+      let rest = 50, dragging = false, pointerId = null;
+      const hoverQuery = matchMedia('(hover:hover) and (pointer:fine)');
+      const clamp = value => Math.max(0, Math.min(100, value));
+      const setReveal = (value, commit = false) => {
+        const next = clamp(value);
+        reveal.style.setProperty('--reveal', next + '%');
+        reveal.setAttribute('aria-valuenow', String(Math.round(next)));
+        reveal.setAttribute('aria-valuetext', 'WSS ' + Math.round(next) + '% / WSS2 ' + Math.round(100-next) + '%');
+        if (commit) rest = next;
+      };
+      const pointerValue = event => {
+        const rect = reveal.getBoundingClientRect();
+        return (event.clientX - rect.left) / Math.max(1, rect.width) * 100;
+      };
+      const finishDrag = event => {
+        if (!dragging || (pointerId !== null && event.pointerId !== pointerId)) return;
+        dragging = false; pointerId = null; reveal.classList.remove('is-dragging');
+        try { if (reveal.hasPointerCapture?.(event.pointerId)) reveal.releasePointerCapture(event.pointerId); } catch {}
+      };
+      reveal.addEventListener('pointerdown', event => {
+        if (event.target.closest('[data-edition]')) return;
+        dragging = true; pointerId = event.pointerId; reveal.classList.add('is-dragging');
+        try { reveal.setPointerCapture?.(event.pointerId); } catch {}
+        setReveal(pointerValue(event), true);
+      }, { signal });
+      reveal.addEventListener('pointermove', event => {
+        if (dragging && event.pointerId === pointerId) {
+          setReveal(pointerValue(event), true);
+          return;
+        }
+        if (!dragging && event.pointerType === 'mouse' && hoverQuery.matches) {
+          const rect = reveal.getBoundingClientRect();
+          const x = (event.clientX - rect.left) / Math.max(1, rect.width);
+          if (x < .43) setReveal(82);
+          else if (x > .57) setReveal(18);
+          else setReveal(50);
+        }
+      }, { signal });
+      reveal.addEventListener('pointerup', finishDrag, { signal });
+      reveal.addEventListener('pointercancel', finishDrag, { signal });
+      reveal.addEventListener('pointerleave', () => { if (!dragging) setReveal(rest); }, { signal });
+      reveal.addEventListener('keydown', event => {
+        let next = Number(reveal.getAttribute('aria-valuenow')) || 50;
+        if (event.key === 'ArrowLeft') next -= event.shiftKey ? 15 : 5;
+        else if (event.key === 'ArrowRight') next += event.shiftKey ? 15 : 5;
+        else if (event.key === 'Home') next = 0;
+        else if (event.key === 'End') next = 100;
+        else if (event.key === '0') next = 50;
+        else return;
+        event.preventDefault(); setReveal(next, true);
+      }, { signal });
+      for (const button of article.querySelectorAll('[data-edition]')) {
+        button.addEventListener('click', () => setReveal(button.dataset.edition === 'wss' ? 100 : 0, true), { signal });
+      }
+      ctx.landing = { setReveal };
+    }
     window.addEventListener('resize', fitContent, { signal });
     function source(video) {
       if (!video.getAttribute('src') || video.error) { video.src = video.dataset.source; video.load(); }
@@ -135,7 +204,7 @@
         }
       }
     }, { root, rootMargin: '-60px 0px -70% 0px', threshold: 0 });
-    for (const id of ['wss-edition-one', 'wss-edition-two', 'wss-live']) ctx.chaptersObserver.observe(article.querySelector(`#${id}`));
+    for (const id of ['wss-landing', 'wss-edition-one', 'wss-edition-two', 'wss-live']) ctx.chaptersObserver.observe(article.querySelector(`#${id}`));
     article.addEventListener('click', event => {
       const back = event.target.closest('[data-return]');
       if (back) { event.preventDefault(); window.closeProject(); return; }

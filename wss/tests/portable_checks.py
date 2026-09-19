@@ -15,7 +15,7 @@ async def run(args):
                 page=await browser.new_page(viewport={'width':w,'height':h},reduced_motion='reduce')
                 await page.goto(html.resolve().as_uri())
                 await page.wait_for_function('state==="opened"')
-                assert await page.locator('[data-design="showbook-v3"]').count()==1
+                assert await page.locator('[data-design="layered-landing-v4"]').count()==1
                 await page.locator('.wss-bar [data-jump="wss-live"]').click()
                 await page.locator('[data-live-start]').click()
                 frame=page.frame_locator('iframe')

@@ -25,13 +25,53 @@ async def run(args):
                     await page.evaluate('active=0;openProject()')
                 else: await page.goto(args.base_url+'#wss')
                 await page.wait_for_function('state==="opened"')
-                assert await page.locator('[data-design="showbook-v3"]').count()==1
-                assert await page.locator('.wss-opening,.wss-first-details,.wss-world-building').count()==0
+                assert await page.locator('[data-design="layered-landing-v4"]').count()==1
+                assert await page.locator('.wss-cover,.wss-overture,.wss-opening,.wss-first-details,.wss-world-building').count()==0
                 assert await page.locator('iframe').count()==0
-                assert await page.locator('.wss-cover .wss-film').count()==1
-                assert await page.locator('.wss-graphic-spread figure').count()==2
+                assert await page.locator('[data-wss-reveal]').count()==1
+                assert await page.locator('.wss-graphic-spread figure').count()==3
                 assert await page.locator('.wss-spatial-grid figure').count()==4
-                ok(label+': new DOM compositions; no old media-stack sections or eager iframe')
+                ok(label+': layered landing replaces the old hero while lower editorial compositions remain')
+                slider=page.locator('[data-wss-reveal]')
+                assert await slider.get_attribute('aria-valuenow')=='50'
+                fonts=await page.evaluate('''() => ({
+                    wss:getComputedStyle(document.querySelector('.wss-layer-copy--wss h1')).fontFamily,
+                    wss2:getComputedStyle(document.querySelector('.wss2-layer-copy h2')).fontFamily
+                })''')
+                assert 'Noto Sans' in fonts['wss'], fonts
+                assert 'Bodoni Moda' in fonts['wss2'], fonts
+                box=await slider.bounding_box()
+                if label=='desktop':
+                    await page.mouse.move(box['x']+box['width']*.18,box['y']+box['height']*.42)
+                    await page.wait_for_timeout(650)
+                    assert int(await slider.get_attribute('aria-valuenow'))>=78
+                    await page.screenshot(path=str(out/(label+'-landing-wss.png')))
+                    await page.mouse.move(box['x']+box['width']*.82,box['y']+box['height']*.42)
+                    await page.wait_for_timeout(650)
+                    assert int(await slider.get_attribute('aria-valuenow'))<=22
+                    await page.screenshot(path=str(out/(label+'-landing-wss2.png')))
+                    await page.mouse.move(box['x']+box['width']*.50,box['y']+box['height']*.42)
+                    await page.mouse.down()
+                    await page.mouse.move(box['x']+box['width']*.70,box['y']+box['height']*.42,steps=8)
+                    await page.mouse.up()
+                    assert 66<=int(await slider.get_attribute('aria-valuenow'))<=74
+                    await slider.focus()
+                    await page.keyboard.press('ArrowRight')
+                    assert 71<=int(await slider.get_attribute('aria-valuenow'))<=79
+                    ok(label+': hover focuses editions; drag and keyboard control the reveal divider')
+                else:
+                    await page.locator('[data-edition="wss"]').click()
+                    assert int(await slider.get_attribute('aria-valuenow'))==100
+                    await page.locator('[data-edition="wss2"]').click()
+                    assert int(await slider.get_attribute('aria-valuenow'))==0
+                    await slider.focus();await page.keyboard.press('0')
+                    assert int(await slider.get_attribute('aria-valuenow'))==50
+                    await slider.dispatch_event('pointerdown',{'pointerId':7,'pointerType':'touch','clientX':box['x']+box['width']*.5,'clientY':box['y']+box['height']*.5,'isPrimary':True})
+                    await slider.dispatch_event('pointermove',{'pointerId':7,'pointerType':'touch','clientX':box['x']+box['width']*.68,'clientY':box['y']+box['height']*.5,'isPrimary':True})
+                    await slider.dispatch_event('pointerup',{'pointerId':7,'pointerType':'touch','clientX':box['x']+box['width']*.68,'clientY':box['y']+box['height']*.5,'isPrimary':True})
+                    assert 64<=int(await slider.get_attribute('aria-valuenow'))<=72
+                    await page.screenshot(path=str(out/(label+'-landing-touch.png')))
+                    ok(label+': edition labels, keyboard reset and touch-pointer drag control the mobile reveal')
                 await page.locator('.wss-bar [data-jump="wss-live"]').click()
                 await page.locator('[data-live-start]').scroll_into_view_if_needed()
                 await page.locator('[data-live-start]').click()

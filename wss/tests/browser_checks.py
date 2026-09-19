@@ -87,12 +87,18 @@ async def run(args):
                 intro = page.locator('[data-film="wss-intro"] video')
                 teaser = page.locator('[data-film="wss2-teaser"] video')
                 invitation = page.locator('[data-film="wss2-invitation"] video')
-                await page.wait_for_function('document.querySelector("[data-film=wss-intro] video").readyState >= 2')
-                assert await intro.evaluate('(v)=>!v.paused && v.muted && v.loop && Math.abs(v.duration-8.6)<.2')
+                assert await intro.get_attribute('src') is None
                 assert await teaser.get_attribute('src') is None
                 assert await invitation.get_attribute('src') is None
-                passed(f'{label}: trimmed opening plays muted; secondary films remain unloaded')
-                await page.screenshot(path=str(output / f'{label}-opening.png'))
+                passed(f'{label}: layered landing is media-quiet; films remain unloaded below it')
+                await page.screenshot(path=str(output / f'{label}-layered-landing.png'))
+                await page.locator('[data-jump="wss-edition-one"]').click()
+                await page.wait_for_timeout(1100)
+                await intro.scroll_into_view_if_needed()
+                await page.wait_for_function('document.querySelector("[data-film=wss-intro] video").readyState >= 2')
+                await page.wait_for_function('!document.querySelector("[data-film=wss-intro] video").paused')
+                assert await intro.evaluate('(v)=>v.muted && v.loop && Math.abs(v.duration-8.6)<.2')
+                passed(f'{label}: first-edition motion starts only after entering WSS details')
                 await page.locator('[data-film="wss-intro"] [data-toggle]').click()
                 assert await intro.evaluate('(v)=>v.paused')
                 await page.locator('[data-jump="wss-edition-two"]').click()
