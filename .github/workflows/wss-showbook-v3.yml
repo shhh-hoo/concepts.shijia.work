@@ -1,7 +1,7 @@
-name: WSS showbook structural redesign
+name: WSS layered landing / showbook verification
 on:
   push:
-    branches: [feat/wss-showbook-v3]
+    branches: [feat/wss-showbook-v3, feat/wss-layered-landing-v4]
   workflow_dispatch:
 permissions:
   contents: read
