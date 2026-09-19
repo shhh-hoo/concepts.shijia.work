@@ -1,7 +1,7 @@
 /* WSS showbook: scoped viewport adapter, compositions and media controls. */
-#projectWorld.wss-world{inset:auto;left:50%;top:50%;width:100vw;height:100vh;height:100dvh;transform:scale(var(--wss-unscale,1)) translate(-50%,-50%);transform-origin:center;background:#171317}
+#projectWorld.wss-world{inset:auto;left:calc(50% + var(--wss-offset-x,0px));top:calc(50% + var(--wss-offset-y,0px));width:100vw;height:100vh;height:100dvh;transform:translate(-50%,-50%) scale(var(--wss-unscale,1));transform-origin:center;background:#171317}
 #projectWorld.wss-world>.project-scroll{width:100%;height:100%;background:#171317;cursor:auto;scrollbar-width:thin;scrollbar-color:#686258 transparent}
-.scene.return-pulling #projectWorld.wss-world{transform:scale(var(--wss-unscale,1)) translate(-50%,calc(-50% + var(--return-pull,0px)))}
+.scene.return-pulling #projectWorld.wss-world{transform:translate(-50%,calc(-50% + var(--return-pull,0px))) scale(var(--wss-unscale,1))}
 .scene.opened.wss-scene>.field-sheet{visibility:hidden}.wss-scene>.back{visibility:hidden;pointer-events:none}
 .wss-story{--pink:#ed9ec5;--blue:#54d9f6;--cream:#f0ebdf;--green:#15362c;--gutter:clamp(20px,4.4vw,84px);color:var(--cream);background:#171317;font:15px/1.5 'Noto Sans',Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
 .wss-story :where(h1,h2,h3,p,figure,ol){margin:0}.wss-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}.wss-story *{box-sizing:border-box}.wss-story [hidden]{display:none!important}
