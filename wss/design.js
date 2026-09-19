@@ -33,8 +33,8 @@
           <button type="button" class="wss-edition-switch wss-edition-switch--wss" data-edition="wss" aria-label="Focus WSS first edition"><b>01</b><span>WSS</span></button>
           <button type="button" class="wss-edition-switch wss-edition-switch--wss2" data-edition="wss2" aria-label="Focus WSS2 second edition"><b>02</b><span>WSS2</span></button>
           <div class="wss-reveal-bar" data-reveal-bar aria-hidden="true"><i></i><span>DRAG</span></div>
-          <div class="wss-landing-statement"><p>${esc(project.statement)}</p><div><span>IDENTITY</span><span>INVITATION</span><span>STAGE</span><span>INTERACTION</span></div></div>
         </div>
+          <div class="wss-landing-statement"><p>${esc(project.statement)}</p><div><span>IDENTITY</span><span>INVITATION</span><span>STAGE</span><span>INTERACTION</span></div></div>
       </section>
       <section id="wss-edition-one" class="wss-act-one" aria-label="WSS first edition details">
         <div class="wss-graphic-spread wss-pad">
