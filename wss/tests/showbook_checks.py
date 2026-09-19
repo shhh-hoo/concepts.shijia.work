@@ -61,9 +61,9 @@ async def run(args):
                     ok(label+': hover focuses editions; drag and keyboard control the reveal divider')
                 else:
                     await page.locator('[data-edition="wss"]').click()
-                    assert int(await slider.get_attribute('aria-valuenow'))==88
+                    assert int(await slider.get_attribute('aria-valuenow'))==100
                     await page.locator('[data-edition="wss2"]').click()
-                    assert int(await slider.get_attribute('aria-valuenow'))==12
+                    assert int(await slider.get_attribute('aria-valuenow'))==0
                     await slider.focus();await page.keyboard.press('0')
                     assert int(await slider.get_attribute('aria-valuenow'))==50
                     await slider.dispatch_event('pointerdown',{'pointerId':7,'pointerType':'touch','clientX':box['x']+box['width']*.5,'clientY':box['y']+box['height']*.5,'isPrimary':True})
