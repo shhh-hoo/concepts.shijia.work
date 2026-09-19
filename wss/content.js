@@ -55,6 +55,64 @@
       }
     }
     fitContent();
+    const reveal = article.querySelector('[data-wss-reveal]');
+    if (reveal) {
+      let rest = 50, dragging = false, pointerId = null;
+      const hoverQuery = matchMedia('(hover:hover) and (pointer:fine)');
+      const clamp = value => Math.max(6, Math.min(94, value));
+      const setReveal = (value, commit = false) => {
+        const next = clamp(value);
+        reveal.style.setProperty('--reveal', next + '%');
+        reveal.setAttribute('aria-valuenow', String(Math.round(next)));
+        reveal.setAttribute('aria-valuetext', 'WSS ' + Math.round(next) + '% / WSS2 ' + Math.round(100-next) + '%');
+        if (commit) rest = next;
+      };
+      const pointerValue = event => {
+        const rect = reveal.getBoundingClientRect();
+        return (event.clientX - rect.left) / Math.max(1, rect.width) * 100;
+      };
+      const finishDrag = event => {
+        if (!dragging || (pointerId !== null && event.pointerId !== pointerId)) return;
+        dragging = false; pointerId = null; reveal.classList.remove('is-dragging');
+        if (reveal.hasPointerCapture?.(event.pointerId)) reveal.releasePointerCapture(event.pointerId);
+      };
+      reveal.addEventListener('pointerdown', event => {
+        if (event.target.closest('[data-edition]')) return;
+        dragging = true; pointerId = event.pointerId; reveal.classList.add('is-dragging');
+        reveal.setPointerCapture?.(event.pointerId);
+        setReveal(pointerValue(event), true);
+      }, { signal });
+      reveal.addEventListener('pointermove', event => {
+        if (dragging && event.pointerId === pointerId) {
+          setReveal(pointerValue(event), true);
+          return;
+        }
+        if (!dragging && event.pointerType === 'mouse' && hoverQuery.matches) {
+          const rect = reveal.getBoundingClientRect();
+          const x = (event.clientX - rect.left) / Math.max(1, rect.width);
+          if (x < .43) setReveal(82);
+          else if (x > .57) setReveal(18);
+          else setReveal(50);
+        }
+      }, { signal });
+      reveal.addEventListener('pointerup', finishDrag, { signal });
+      reveal.addEventListener('pointercancel', finishDrag, { signal });
+      reveal.addEventListener('pointerleave', () => { if (!dragging) setReveal(rest); }, { signal });
+      reveal.addEventListener('keydown', event => {
+        let next = Number(reveal.getAttribute('aria-valuenow')) || 50;
+        if (event.key === 'ArrowLeft') next -= event.shiftKey ? 15 : 5;
+        else if (event.key === 'ArrowRight') next += event.shiftKey ? 15 : 5;
+        else if (event.key === 'Home') next = 6;
+        else if (event.key === 'End') next = 94;
+        else if (event.key === '0') next = 50;
+        else return;
+        event.preventDefault(); setReveal(next, true);
+      }, { signal });
+      for (const button of article.querySelectorAll('[data-edition]')) {
+        button.addEventListener('click', () => setReveal(button.dataset.edition === 'wss' ? 88 : 12, true), { signal });
+      }
+      ctx.landing = { setReveal };
+    }
     window.addEventListener('resize', fitContent, { signal });
     function source(video) {
       if (!video.getAttribute('src') || video.error) { video.src = video.dataset.source; video.load(); }
