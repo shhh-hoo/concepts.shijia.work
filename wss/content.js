@@ -17,7 +17,9 @@
     }
     old.world.classList.remove('wss-world');
     old.scene.classList.remove('wss-scene');
-    old.world.style.removeProperty('--wss-unscale');\n    old.world.style.removeProperty('--wss-offset-x');\n    old.world.style.removeProperty('--wss-offset-y');
+    old.world.style.removeProperty('--wss-unscale');
+    old.world.style.removeProperty('--wss-offset-x');
+    old.world.style.removeProperty('--wss-offset-y');
     old.article.remove();
     old.root.removeAttribute('aria-label');
     old.root.removeAttribute('tabindex');
