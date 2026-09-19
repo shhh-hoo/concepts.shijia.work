@@ -11,6 +11,7 @@
   let currentProjectIndex = null;
   let pendingRouteTimer = null;
   let returnCleanupTimer = null;
+  let indexTraversalToken = 0;
 
   let touchSession = null;
   const activeTouchMoveOptions = {passive:false};
@@ -167,6 +168,41 @@
     },delay);
   }
 
+  function traverseBackToIndex(){
+    const token=++indexTraversalToken;
+    let remaining=32;
+
+    function step(){
+      if(token!==indexTraversalToken) return;
+      if(projectIndexFromHash()<0 || state!=="opened") return;
+
+      if(remaining--<=0){
+        // Defensive fallback only: a project must always remain closable even
+        // if an embedded document created an unexpectedly deep joint history.
+        history.replaceState(
+          {conceptsView:"index",indexScrollY:0},
+          "",
+          indexUrl()
+        );
+        syncRoute();
+        return;
+      }
+
+      history.back();
+
+      // Cross-origin iframe traversals are part of the browser's joint session
+      // history but do not produce a top-level popstate. Keep traversing until
+      // the parent's index entry is reached. A real parent popstate cancels
+      // this token below.
+      setTimeout(()=>{
+        if(token!==indexTraversalToken) return;
+        if(projectIndexFromHash()>=0 && state==="opened") step();
+      },80);
+    }
+
+    step();
+  }
+
   function navigateToIndex({fromGesture=false}={}){
     if(state==="index" && projectIndexFromHash()<0) return;
 
@@ -174,7 +210,7 @@
 
     const hs=history.state && typeof history.state==="object" ? history.state : {};
     if(hs.conceptsView==="project" && hs.fromIndex===true){
-      history.back();
+      traverseBackToIndex();
       return;
     }
 
@@ -212,6 +248,7 @@
   },true);
 
   window.addEventListener("popstate",()=>{
+    indexTraversalToken++;
     endTouchSession({cancelVisual:false});
     if(!scene.classList.contains("return-committing")) clearReturnPull(true);
     syncRoute();
