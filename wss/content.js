@@ -193,7 +193,7 @@
         }
       }
     }, { root, rootMargin: '-60px 0px -70% 0px', threshold: 0 });
-    for (const id of ['wss-edition-one', 'wss-edition-two', 'wss-live']) ctx.chaptersObserver.observe(article.querySelector(`#${id}`));
+    for (const id of ['wss-landing', 'wss-edition-one', 'wss-edition-two', 'wss-live']) ctx.chaptersObserver.observe(article.querySelector(`#${id}`));
     article.addEventListener('click', event => {
       const back = event.target.closest('[data-return]');
       if (back) { event.preventDefault(); window.closeProject(); return; }
