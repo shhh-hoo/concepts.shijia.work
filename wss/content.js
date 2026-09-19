@@ -17,7 +17,7 @@
     }
     old.world.classList.remove('wss-world');
     old.scene.classList.remove('wss-scene');
-    old.world.style.removeProperty('--wss-unscale');
+    old.world.style.removeProperty('--wss-unscale');\n    old.world.style.removeProperty('--wss-offset-x');\n    old.world.style.removeProperty('--wss-offset-y');
     old.article.remove();
     old.root.removeAttribute('aria-label');
     old.root.removeAttribute('tabindex');
@@ -43,6 +43,15 @@
       const transform = getComputedStyle(scene).transform;
       const scale = transform === 'none' ? 1 : Math.abs(new DOMMatrixReadOnly(transform).a);
       world.style.setProperty('--wss-unscale', String(1 / Math.max(.01, scale)));
+      world.style.setProperty('--wss-offset-x', '0px');
+      world.style.setProperty('--wss-offset-y', '0px');
+      // The portfolio index is a fixed 1536×1024 canvas letterboxed into the
+      // browser viewport. Measure the resulting WSS viewport after cancelling
+      // that scale, then compensate in scene coordinates rather than relying
+      // on transform-order assumptions.
+      const worldRect = world.getBoundingClientRect();
+      world.style.setProperty('--wss-offset-x', (-worldRect.left / Math.max(.01, scale)) + 'px');
+      world.style.setProperty('--wss-offset-y', (-worldRect.top / Math.max(.01, scale)) + 'px');
       if (scene.classList.contains('opened')) {
         const ux = 700 / Math.hypot(700, 1000), uy = -1000 / Math.hypot(700, 1000);
         const travel = Math.max(Math.hypot(700, 1000) * 1.48,
