@@ -10,7 +10,7 @@
   const caption = (n,text) => `<figcaption><span>${n}</span>${text}</figcaption>`;
   function render(project) {
     return `<article class="wss-story wss-showbook" aria-labelledby="wss-title" data-design="layered-landing-v4">
-      <nav class="wss-bar" aria-label="WSS project navigation"><span class="wss-brand">WSS / WSS2 <span>— SHOWBOOK</span></span><div class="wss-chapter-links"><button data-jump="wss-edition-one" aria-current="true">I. WSS</button><button data-jump="wss-edition-two">II. WSS2</button><button data-jump="wss-live">IN PLAY</button></div><button data-return class="wss-return" aria-label="Back to concepts">INDEX <span aria-hidden="true">×</span></button></nav>
+      <nav class="wss-bar" aria-label="WSS project navigation"><span class="wss-brand">WSS / WSS2 <span>— SHOWBOOK</span></span><div class="wss-chapter-links"><button data-jump="wss-landing" aria-current="true">BOTH</button><button data-jump="wss-edition-one">I. WSS</button><button data-jump="wss-edition-two">II. WSS2</button><button data-jump="wss-live">IN PLAY</button></div><button data-return class="wss-return" aria-label="Back to concepts">INDEX <span aria-hidden="true">×</span></button></nav>
       <section id="wss-landing" class="wss-layered-landing" aria-labelledby="wss-title">\n        <h1 id="wss-title" class="wss-sr-only">WSS / WSS2 — Who’s Still Standing?</h1>
         <div class="wss-layered-meta"><span>TWO EDITIONS / ONE SHOW</span><span>DRAG / HOVER / ← →</span></div>
         <div class="wss-reveal" data-wss-reveal role="slider" tabindex="0" aria-label="Reveal WSS and WSS2 editions" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="WSS 50% / WSS2 50%" style="--reveal:50%">
