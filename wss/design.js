@@ -9,27 +9,47 @@
   const film = (name, title, duration, auto='', ratio='16/9') => `<figure class="wss-film" data-film="${name}"><div class="wss-film-screen" style="--film-ratio:${ratio}"><video data-source="${src(name+'.mp4')}" data-autoplay="${auto}" poster="${src(name+'-poster-1600.webp')}" aria-label="${title}" width="1600" height="${ratio==='3/2'?1067:900}" preload="none" controls muted playsinline ${auto==='loop'?'loop':''}></video></div><figcaption class="wss-film-caption"><span>${title} <b>${duration}</b></span><div class="wss-film-actions"><button type="button" data-toggle aria-label="Play ${title}">PLAY FILM</button><button type="button" data-sound aria-pressed="false">SOUND OFF</button></div></figcaption><p class="wss-media-error" role="status" hidden>Film unavailable. Press Play film to retry.</p></figure>`;
   const caption = (n,text) => `<figcaption><span>${n}</span>${text}</figcaption>`;
   function render(project) {
-    return `<article class="wss-story wss-showbook" aria-labelledby="wss-title" data-design="showbook-v3">
+    return `<article class="wss-story wss-showbook" aria-labelledby="wss-title" data-design="layered-landing-v4">
       <nav class="wss-bar" aria-label="WSS project navigation"><span class="wss-brand">WSS / WSS2 <span>— SHOWBOOK</span></span><div class="wss-chapter-links"><button data-jump="wss-edition-one" aria-current="true">I. WSS</button><button data-jump="wss-edition-two">II. WSS2</button><button data-jump="wss-live">IN PLAY</button></div><button data-return class="wss-return" aria-label="Back to concepts">INDEX <span aria-hidden="true">×</span></button></nav>
-      <section id="wss-edition-one" class="wss-act-one" aria-labelledby="wss-title">
-        <header class="wss-cover wss-pad">
-          <div class="wss-running"><span>01 / LIVE QUIZ COMPETITION</span><span>TWO EDITIONS. ONE QUESTION.</span></div>
-          <div class="wss-cover-copy"><p class="wss-eyebrow">WHO’S STILL STANDING?</p><h1 id="wss-title" tabindex="-1">WHO’S <br>STILL<br>STANDING<span>?</span></h1><p class="wss-statement">${esc(project.statement)}</p></div>
-          <div class="wss-cover-screen"><div class="wss-edition-line"><strong>WSS</strong><span>ACT I<br>TURN UP THE VOLUME.</span></div>${film('wss-intro','OPENING SEQUENCE','00:09','loop')}<p class="wss-cover-note">Type sets the rhythm.<br><em>Colour sets the stage.</em></p></div>
-          <div class="wss-dimensions"><span>IDENTITY</span><span>INVITATION</span><span>STAGECRAFT</span><button data-jump="wss-live">INTERACTION ↗</button></div>
-        </header>
+      <section id="wss-landing" class="wss-layered-landing" aria-label="WSS and WSS2 — two editions of one show">
+        <div class="wss-layered-meta"><span>TWO EDITIONS / ONE SHOW</span><span>DRAG / HOVER / ← →</span></div>
+        <div class="wss-reveal" data-wss-reveal role="slider" tabindex="0" aria-label="Reveal WSS and WSS2 editions" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="WSS 50% / WSS2 50%" style="--reveal:50%">
+          <div class="wss-edition-layer wss-layer--wss2" aria-hidden="true">
+            <div class="wss-layer-grid">
+              <div class="wss-layer-index"><span>02</span><b>WSS2</b><small>SECOND EDITION</small></div>
+              <div class="wss-layer-copy wss2-layer-copy"><p>THE SAME QUESTION / A DIFFERENT WORLD</p><h2><em>Good.</em><small>or</small>Wicked.</h2><span>IDENTITY BECOMES SPACE<br>SPACE BECOMES THE SHOW.</span></div>
+              <figure class="wss-layer-art wss2-layer-art">${pic('wss2-artwork',800,1376,1376,768,'WSS2 Good or Wicked main visual','(max-width: 700px) 100vw, 54vw')}</figure>
+              <div class="wss-layer-folio">02 / WORLD-BUILDING<br>EMERALD / PEARL / GOLD</div>
+            </div>
+          </div>
+          <div class="wss-edition-layer wss-layer--wss" aria-hidden="true">
+            <div class="wss-layer-grid">
+              <div class="wss-layer-index"><span>01</span><b>WSS</b><small>FIRST EDITION</small></div>
+              <div class="wss-layer-copy wss-layer-copy--wss"><p>LIVE QUIZ COMPETITION / FIRST EDITION</p><h1 id="wss-title" tabindex="-1">WHO’S<br>STILL<br>STANDING?</h1><span>REPEAT / AMPLIFY / ASSEMBLE<br>THE QUESTION BECOMES THE STAGE.</span></div>
+              <figure class="wss-layer-art wss-layer-art--wss">${pic('wss-stage',1000,2400,6405,2666,'WSS stage artwork with repeated type and magenta and blue panels','(max-width: 700px) 100vw, 56vw')}</figure>
+              <div class="wss-layer-folio">01 / SIGNAL SYSTEM<br>MAGENTA / BLUE / BLACK</div>
+            </div>
+          </div>
+          <button type="button" class="wss-edition-switch wss-edition-switch--wss" data-edition="wss" aria-label="Focus WSS first edition"><b>01</b><span>WSS</span></button>
+          <button type="button" class="wss-edition-switch wss-edition-switch--wss2" data-edition="wss2" aria-label="Focus WSS2 second edition"><b>02</b><span>WSS2</span></button>
+          <div class="wss-reveal-bar" data-reveal-bar aria-hidden="true"><i></i><span>DRAG</span></div>
+          <div class="wss-landing-statement"><p>${esc(project.statement)}</p><div><span>IDENTITY</span><span>INVITATION</span><span>STAGE</span><span>INTERACTION</span></div></div>
+        </div>
+      </section>
+      <section id="wss-edition-one" class="wss-act-one" aria-label="WSS first edition details">
         <div class="wss-graphic-spread wss-pad">
           <header class="wss-graphic-note"><p class="wss-eyebrow">I / THE GRAPHIC LANGUAGE</p><h2>Not just<br>a question.<br><em>A signal.</em></h2><p>The same pulse runs through the invitation, the opening and the stage.</p></header>
           <figure class="wss-stage-sheet">${pic('wss-stage',1000,2400,6405,2666,'WSS stage artwork with repeated type and magenta and blue stage panels')}${caption('A','THE STAGE, COMPOSED / ARTWORK')}</figure>
+          <div class="wss-signal-film">${film('wss-intro','OPENING SEQUENCE','00:09','loop')}</div>
           <figure class="wss-invite-sheet">${pic('wss-signup',800,1514,1514,750,'WSS signup graphic, with repeated Sign up Now lettering','(max-width: 700px) 85vw, 40vw')}${caption('B','THE SAME LANGUAGE / INVITATION')}</figure>
           <p class="wss-graphic-aside"><span>REPEAT.<br>AMPLIFY.<br>ASSEMBLE.</span>From a graphic on a screen<br>to a screen on a stage.</p>
         </div>
       </section>
       <section id="wss-edition-two" class="wss-act-two" aria-labelledby="wss2-title">
-        <div class="wss-overture wss-pad">
-          <div class="wss-running"><span>ACT II / A CHANGE OF WORLD</span><span id="wss2-title">WSS2</span></div>
-          <header class="wss-duality"><span class="wss-eyebrow">THE SAME QUESTION.</span><h2><em>Good.</em><small>OR</small>Wicked.</h2><p>A new visual world.<br>Before the first question.</p><span class="wss-overture-mark" aria-hidden="true">II</span></header>
-          <div class="wss-teaser-composition">${film('wss2-teaser','THE TEASER','00:13','once')}<div class="wss-overture-notes"><span>THE CREST CHANGES.<br>THE WORLD FOLLOWS.</span><p>The second edition begins with a transformation, not an explanation.</p></div></div>
+        <div class="wss-preview-transition wss-pad">
+          <div class="wss-running"><span>ACT II / PREVIEW</span><span>SCREEN → ROOM</span></div>
+          <header class="wss-preview-copy"><p class="wss-eyebrow">THE WORLD MOVES FIRST</p><h2>The preview<br><em>opens the door.</em></h2><p>The visual world arrives in motion before it becomes a room people enter.</p></header>
+          <div class="wss-preview-film">${film('wss2-teaser','WSS2 PREVIEW','00:13','once')}<div class="wss-preview-handoff"><span>VISUAL WORLD</span><i>→</i><span>PHYSICAL STAGE</span></div></div>
         </div>
         <section class="wss-spatial wss-pad" aria-labelledby="wss-space-title">
           <div class="wss-running"><span>WSS2 / IDENTITY → SPACE</span><span>SCREEN / ROOM / THRESHOLD</span></div>
