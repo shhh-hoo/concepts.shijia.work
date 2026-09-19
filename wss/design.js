@@ -11,7 +11,7 @@
   function render(project) {
     return `<article class="wss-story wss-showbook" aria-labelledby="wss-title" data-design="layered-landing-v4">
       <nav class="wss-bar" aria-label="WSS project navigation"><span class="wss-brand">WSS / WSS2 <span>— SHOWBOOK</span></span><div class="wss-chapter-links"><button data-jump="wss-edition-one" aria-current="true">I. WSS</button><button data-jump="wss-edition-two">II. WSS2</button><button data-jump="wss-live">IN PLAY</button></div><button data-return class="wss-return" aria-label="Back to concepts">INDEX <span aria-hidden="true">×</span></button></nav>
-      <section id="wss-landing" class="wss-layered-landing" aria-label="WSS and WSS2 — two editions of one show">
+      <section id="wss-landing" class="wss-layered-landing" aria-labelledby="wss-title">\n        <h1 id="wss-title" class="wss-sr-only">WSS / WSS2 — Who’s Still Standing?</h1>
         <div class="wss-layered-meta"><span>TWO EDITIONS / ONE SHOW</span><span>DRAG / HOVER / ← →</span></div>
         <div class="wss-reveal" data-wss-reveal role="slider" tabindex="0" aria-label="Reveal WSS and WSS2 editions" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="WSS 50% / WSS2 50%" style="--reveal:50%">
           <div class="wss-edition-layer wss-layer--wss2" aria-hidden="true">
@@ -25,7 +25,7 @@
           <div class="wss-edition-layer wss-layer--wss" aria-hidden="true">
             <div class="wss-layer-grid">
               <div class="wss-layer-index"><span>01</span><b>WSS</b><small>FIRST EDITION</small></div>
-              <div class="wss-layer-copy wss-layer-copy--wss"><p>LIVE QUIZ COMPETITION / FIRST EDITION</p><h1 id="wss-title" tabindex="-1">WHO’S<br>STILL<br>STANDING?</h1><span>REPEAT / AMPLIFY / ASSEMBLE<br>THE QUESTION BECOMES THE STAGE.</span></div>
+              <div class="wss-layer-copy wss-layer-copy--wss"><p>LIVE QUIZ COMPETITION / FIRST EDITION</p><h1 tabindex="-1">WHO’S<br>STILL<br>STANDING?</h1><span>REPEAT / AMPLIFY / ASSEMBLE<br>THE QUESTION BECOMES THE STAGE.</span></div>
               <figure class="wss-layer-art wss-layer-art--wss">${pic('wss-stage',1000,2400,6405,2666,'WSS stage artwork with repeated type and magenta and blue panels','(max-width: 700px) 100vw, 56vw')}</figure>
               <div class="wss-layer-folio">01 / SIGNAL SYSTEM<br>MAGENTA / BLUE / BLACK</div>
             </div>
@@ -45,7 +45,7 @@
           <p class="wss-graphic-aside"><span>REPEAT.<br>AMPLIFY.<br>ASSEMBLE.</span>From a graphic on a screen<br>to a screen on a stage.</p>
         </div>
       </section>
-      <section id="wss-edition-two" class="wss-act-two" aria-labelledby="wss2-title">
+      <section id="wss-edition-two" class="wss-act-two" aria-label="WSS2 second edition details">
         <div class="wss-preview-transition wss-pad">
           <div class="wss-running"><span>ACT II / PREVIEW</span><span>SCREEN → ROOM</span></div>
           <header class="wss-preview-copy"><p class="wss-eyebrow">THE WORLD MOVES FIRST</p><h2>The preview<br><em>opens the door.</em></h2><p>The visual world arrives in motion before it becomes a room people enter.</p></header>
