@@ -59,7 +59,7 @@
     if (reveal) {
       let rest = 50, dragging = false, pointerId = null;
       const hoverQuery = matchMedia('(hover:hover) and (pointer:fine)');
-      const clamp = value => Math.max(6, Math.min(94, value));
+      const clamp = value => Math.max(0, Math.min(100, value));
       const setReveal = (value, commit = false) => {
         const next = clamp(value);
         reveal.style.setProperty('--reveal', next + '%');
@@ -74,12 +74,12 @@
       const finishDrag = event => {
         if (!dragging || (pointerId !== null && event.pointerId !== pointerId)) return;
         dragging = false; pointerId = null; reveal.classList.remove('is-dragging');
-        if (reveal.hasPointerCapture?.(event.pointerId)) reveal.releasePointerCapture(event.pointerId);
+        try { if (reveal.hasPointerCapture?.(event.pointerId)) reveal.releasePointerCapture(event.pointerId); } catch {}
       };
       reveal.addEventListener('pointerdown', event => {
         if (event.target.closest('[data-edition]')) return;
         dragging = true; pointerId = event.pointerId; reveal.classList.add('is-dragging');
-        reveal.setPointerCapture?.(event.pointerId);
+        try { reveal.setPointerCapture?.(event.pointerId); } catch {}
         setReveal(pointerValue(event), true);
       }, { signal });
       reveal.addEventListener('pointermove', event => {
@@ -102,14 +102,14 @@
         let next = Number(reveal.getAttribute('aria-valuenow')) || 50;
         if (event.key === 'ArrowLeft') next -= event.shiftKey ? 15 : 5;
         else if (event.key === 'ArrowRight') next += event.shiftKey ? 15 : 5;
-        else if (event.key === 'Home') next = 6;
-        else if (event.key === 'End') next = 94;
+        else if (event.key === 'Home') next = 0;
+        else if (event.key === 'End') next = 100;
         else if (event.key === '0') next = 50;
         else return;
         event.preventDefault(); setReveal(next, true);
       }, { signal });
       for (const button of article.querySelectorAll('[data-edition]')) {
-        button.addEventListener('click', () => setReveal(button.dataset.edition === 'wss' ? 88 : 12, true), { signal });
+        button.addEventListener('click', () => setReveal(button.dataset.edition === 'wss' ? 100 : 0, true), { signal });
       }
       ctx.landing = { setReveal };
     }
