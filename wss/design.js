@@ -16,7 +16,6 @@
         <div class="wss-reveal" data-wss-reveal role="slider" tabindex="0" aria-label="Reveal WSS and WSS2 editions" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="WSS 50% / WSS2 50%" style="--reveal:50%">
           <div class="wss-edition-layer wss-layer--wss2" aria-hidden="true">
             <div class="wss-layer-grid">
-              <div class="wss-layer-index"><span>02</span><b>WSS2</b><small>SECOND EDITION</small></div>
               <div class="wss-layer-copy wss2-layer-copy"><p>THE SAME QUESTION / A DIFFERENT WORLD</p><h2><em>Good.</em><small>or</small>Wicked.</h2><span>IDENTITY BECOMES SPACE<br>SPACE BECOMES THE SHOW.</span></div>
               <figure class="wss-layer-art wss2-layer-art">${pic('wss2-artwork',800,1376,1376,768,'WSS2 Good or Wicked main visual','(max-width: 700px) 100vw, 54vw')}</figure>
               <div class="wss-layer-folio">02 / WORLD-BUILDING<br>EMERALD / PEARL / GOLD</div>
@@ -24,14 +23,13 @@
           </div>
           <div class="wss-edition-layer wss-layer--wss" aria-hidden="true">
             <div class="wss-layer-grid">
-              <div class="wss-layer-index"><span>01</span><b>WSS</b><small>FIRST EDITION</small></div>
               <div class="wss-layer-copy wss-layer-copy--wss"><p>LIVE QUIZ COMPETITION / FIRST EDITION</p><h1 tabindex="-1">WHO’S<br>STILL<br>STANDING?</h1><span>REPEAT / AMPLIFY / ASSEMBLE<br>THE QUESTION BECOMES THE STAGE.</span></div>
               <figure class="wss-layer-art wss-layer-art--wss">${pic('wss-stage',1000,2400,6405,2666,'WSS stage artwork with repeated type and magenta and blue panels','(max-width: 700px) 100vw, 56vw')}</figure>
               <div class="wss-layer-folio">01 / SIGNAL SYSTEM<br>MAGENTA / BLUE / BLACK</div>
             </div>
           </div>
-          <button type="button" class="wss-edition-switch wss-edition-switch--wss" data-edition="wss" aria-label="Focus WSS first edition"><b>01</b><span>WSS</span></button>
-          <button type="button" class="wss-edition-switch wss-edition-switch--wss2" data-edition="wss2" aria-label="Focus WSS2 second edition"><b>02</b><span>WSS2</span></button>
+          <button type="button" class="wss-edition-switch wss-edition-switch--wss" data-edition="wss" aria-label="Focus WSS first edition"><b>01</b><span>WSS<small>FIRST EDITION</small></span></button>
+          <button type="button" class="wss-edition-switch wss-edition-switch--wss2" data-edition="wss2" aria-label="Focus WSS2 second edition"><b>02</b><span>WSS2<small>SECOND EDITION</small></span></button>
           <div class="wss-reveal-bar" data-reveal-bar aria-hidden="true"><i></i><span>DRAG</span></div>
         </div>
           <div class="wss-landing-statement"><p>${esc(project.statement)}</p><div><span>IDENTITY</span><span>INVITATION</span><span>STAGE</span><span>INTERACTION</span></div></div>
