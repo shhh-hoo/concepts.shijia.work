@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>WSS / WSS2 Scroll-Scrub Technical Lab</title>
+  <link rel="stylesheet" href="scrub-lab.css">
+</head>
+<body>
+  <main class="lab" data-mode="scrub">
+    <section class="scrub-track" data-scrub-track>
+      <div class="stage-shell" data-stage>
+        <header class="lab-bar">
+          <div><strong>WSS / WSS2</strong><span>SCROLL-SCRUB TECHNICAL LAB</span></div>
+          <div class="lab-controls" aria-label="Lab controls">
+            <label>MEDIA
+              <select data-mode-select>
+                <option value="source">A / SOURCE</option>
+                <option value="baseline">A2 / WEB BASELINE</option>
+                <option value="scrub" selected>B / SHORT-GOP</option>
+              </select>
+            </label>
+            <button type="button" data-edition="wss">WSS</button>
+            <button type="button" data-edition="both">BOTH</button>
+            <button type="button" data-edition="wss2">WSS2</button>
+          </div>
+        </header>
+
+        <div class="stage-frame" aria-label="Persistent show stage">
+          <div class="stage-label stage-label--left">STAGE</div>
+          <div class="stage-label stage-label--right">SCROLL ↓ = TIME</div>
+
+          <div class="screen" data-reveal role="slider" tabindex="0"
+               aria-label="Reveal WSS and WSS2 editions"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"
+               style="--reveal:50%">
+            <section class="edition edition--wss2" data-screen="wss2" aria-label="WSS2 screen">
+              <img class="screen-fallback" data-opening src="media/wss2-opening.jpg" alt="">
+              <video muted playsinline preload="auto" data-video poster="media/wss2-opening.jpg"></video>
+              <img class="screen-theme" data-theme src="media/wss2-theme.png" alt="WSS2 main theme poster">
+              <div class="screen-badge">02 / WSS2</div>
+            </section>
+
+            <section class="edition edition--wss" data-screen="wss" aria-label="WSS screen">
+              <img class="screen-fallback" data-opening src="media/wss-opening.jpg" alt="">
+              <video muted playsinline preload="auto" data-video poster="media/wss-opening.jpg"></video>
+              <img class="screen-theme" data-theme src="media/wss-theme.png" alt="WSS stage setting artwork">
+              <div class="screen-badge">01 / WSS</div>
+            </section>
+
+            <button class="reveal-handle" data-reveal-handle type="button" aria-label="Drag to reveal editions">
+              <span></span><i>DRAG</i>
+            </button>
+          </div>
+
+          <div class="stage-floor" aria-hidden="true"><i></i><i></i><i></i></div>
+        </div>
+
+        <div class="timeline" aria-hidden="true">
+          <span data-progress-label>00.0%</span>
+          <div><i data-progress-bar></i><b class="mark mark--hold"></b><b class="mark mark--theme"></b></div>
+          <span data-phase-label>FILM</span>
+        </div>
+
+        <aside class="telemetry" data-telemetry aria-label="Developer telemetry">
+          <div class="telemetry-head"><strong>TELEMETRY</strong><button type="button" data-telemetry-toggle>HIDE</button></div>
+          <pre data-telemetry-output>initializing…</pre>
+        </aside>
+      </div>
+    </section>
+
+    <section class="after-lab" aria-label="Lab end marker">
+      <p>END OF SCRUB TRAVEL</p>
+      <p>Reverse scroll to verify theme → film reversibility.</p>
+    </section>
+  </main>
+  <script src="scrub-lab.js"></script>
+</body>
+</html>
